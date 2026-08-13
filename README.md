@@ -1,369 +1,522 @@
-# VirusAnalyzer 2.0
+# 🛡️ VirusAnalyzer
 
 > **Analyze. Understand. Protect.**
 
-Herramienta de escritorio para Windows que realiza **análisis estático** de
-archivos sospechosos, genera evidencia técnica, una puntuación de riesgo
-explicable y una evaluación asistida por IA basada únicamente en esa evidencia.
+VirusAnalyzer is a Windows desktop application for **static malware analysis and threat assessment**.
 
-VirusAnalyzer **no** es un antivirus comercial ni afirma detectar todo malware.
+It combines local file analysis, heuristic detection, hash reputation, optional VirusTotal integration, AI-assisted explanations, quarantine management, PowerShell diagnostics, and detailed analysis reports into a single interface.
 
----
-
-## Estado del proyecto
-
-### FASE 1 — FOUNDATION ✅
-
-- Proyecto Tauri 2 + React 19 + TypeScript + Vite 7 + Tailwind CSS v4.
-- Backend Rust modular (`src-tauri/src/`).
-- Navegación completa: Dashboard, Scan, Results, Analysis, Quarantine, Rules,
-  System, PowerShell y Settings.
-- Layout con panel lateral, temas claro/oscuro y animaciones sutiles.
-- Internacionalización ES/EN centralizada (`t("clave.punto")`).
-- Sistema de configuración en JSON con versionado de esquema (migración
-  futura a SQLite).
-- Comandos Tauri: `get_config`, `save_config`, `get_app_info`,
-  `get_system_info`.
-- Compila sin errores: `tsc` + `vite build` y `cargo build` (release OK).
-
-### FASE 4 — HEURISTIC ENGINE ✅
-
-- **Catálogo de 28 reglas** (`src-tauri/src/rules/mod.rs`) organizado por
-  categorías (process, persistence, powershell, packing, network,
-  signatures, general), cada una con id, nombre, descripción, severidad y
-  puntos.
-- Detección por **imports de API** (inyección de procesos, RWX, keylogging,
-  anti-debug, persistencia, servicios, descarga de archivos, WinHTTP/WinINet,
-  sockets, DNS), por **secciones PE** (UPX/packers, entropía de `.text`,
-  secciones writable+exec, número de secciones) y por **entropía global**.
-- **Análisis de strings** (`analyzer/keywords.rs`): palabras clave
-  sospechosas (powershell, schtasks, EICAR…) aplicadas **solo a contenido
-  no ejecutable** para evitar ruido en binarios con datos embebidos.
-- Detección de **desajuste tipo/extensión** (p. ej. PE disfrazado de .pdf),
-  con lista blanca de alias legítimos (docx/zip, exe/dll, jpg/jpeg…).
-- **Scoring**: suma ponderada de puntos con tope 100 y niveles
-  Clean(0) · Low(1–14) · Medium(15–34) · High(35–64) · Critical(65+).
-- Lista de firmas hash conocidas (vacía por defecto, extensible en
-  `KNOWN_HASHES`).
-- `ScanResult.findings`, `threatScore` y `threatLevel` reales; comando
-  `get_rules` para la página de Reglas.
-- UI: barra de puntuación en Analysis, lista de hallazgos con severidad/
-  categoría/evidencia/puntos, y página Reglas con el catálogo cargado del
-  backend.
-- Pruebas unitarias del motor (inyección, persistencia, keywords en scripts,
-  scoring/niveles, binario propio).
-
-### FASE 5 — VIRUSTOTAL (REPUTACIÓN POR HASH) ✅
-
-- **Consulta opcional por hash** (`src-tauri/src/virustotal/mod.rs`): solo se
-  envía a VirusTotal el MD5/SHA-1/SHA-256 del archivo; **el contenido nunca
-  se sube**.
-- **Consentimiento explícito**: la integración está desactivada por defecto y
-  solo se activa con el toggle de Ajustes (`virustotalEnabled`); la API key
-  se guarda en la configuración y nunca se registra.
-- Cliente HTTP `ureq` con timeout de 20 s: `GET /api/v3/files/{hash}` con
-  cabecera `x-apikey`. Manejo de 404 (hash no reportado → disponible sin
-  error), 401/403 (clave), 429 (límite) y errores de red/JSON.
-- Parseo de `last_analysis_stats` (malicious/suspicious/harmless/undetected/
-  timeout/type-unsupported), `reputation`, `times_submitted`, fechas
-  (epoch → ISO), `meaningful_name`, `magic`, `size` y tabla de motores con
-  amenazas detectadas (los "malicious/suspicious" se listan como nombres de
-  amenaza). Permalink a `virustotal.com/gui/file/{hash}/detection`.
-- Integrado en `file_scan` (solo archivo individual, solo si la key existe y
-  la integración está activa): el resultado se guarda en
-  `ScanResult.reputation` y la línea temporal registra cada etapa.
-- Comando `virustotal_lookup(hash)` para consulta manual desde Analysis
-  (valida habilitación, clave y longitud de hash 32/40/64).
-- UI: toggle de consentimiento y aviso en Settings, estado en Dashboard, y
-  tarjeta de reputación en Analysis (conteos, amenazas, motores, "Ver en
-  VirusTotal" con `plugin-opener` y botón de comprobación manual por hash).
-- **Feedback explícito en la comprobación manual**: si VirusTotal no está
-  habilitado o falta la clave, el botón avisa de inmediato (sin esperar al
-  backend) con un aviso visible y acceso directo a Ajustes; los errores de
-  red/clave/límite también se muestran en un aviso destacado, no como texto
-  discreto.
-- Pruebas unitarias: parseo de respuesta real, 404 → no disponible y
-  errores de cuota.
-
-### FASE 6 — AI ASSESSMENT (EVALUACIÓN BASADA EN EVIDENCIA) ✅
-
-- **Motor local y determinista** (`src-tauri/src/assessment/mod.rs`), sin red y
-  sin API de IA: sintetiza hallazgos heurísticos, análisis estático y
-  reputación de VirusTotal en un informe en lenguaje natural.
-- **Nunca inventa resultados**: cada afirmación procede de datos reales ya
-  extraídos (evidencia de reglas, tipo/entropía/PE, conteos de VirusTotal).
-- **Veredicto** derivado del nivel + reputación externa (clean /
-  likely_clean / suspicious / malicious); un hash flaggeado por 2+ motores
-  externos asciende el veredicto aunque el score local sea bajo.
-- **Confianza** (0–100 %) calculada por fuerza de la evidencia: acuerdo entre
-  motor local y VirusTotal la refuerza; hash no reportado la reduce.
-- **Resumen** de una o dos frases con el nombre del archivo y los conteos.
-- **Explicación** por párrafos: línea base (tipo, entropía, PE, firma,
-  reputación) + un párrafo por categoría con hallazgos y su evidencia.
-- **Indicadores** concretos por hallazgo, **impacto potencial**,
-  **consecuencias de sistema**, **acciones recomendadas** y **vectores de
-  ataque** generados a partir de las categorías que realmente dispararon.
-- Integrado en `file_scan` (`ScanResult.ai_assessment`) con entrada en la
-  línea temporal.
-- UI: tarjeta "Evaluación de la IA" en Analysis con veredicto localizado,
-  confianza, categorías clave, explicación plegable y detalle expandible.
-- **Idioma del informe (corrección)**: el motor genera el contenido
-  **directamente en el idioma seleccionado** (`es`/`en`), no traduce texto
-  producido en inglés. Cada idioma tiene su propio catálogo de plantillas
-  (`Lang` ES/EN) para resumen, explicación, impacto, consecuencias, acciones y
-  vectores; las descripciones de reglas tienen ficha en español
-  (`rules::description_in`). El idioma viaja de la UI a la config persistida
-  y se lee al iniciar cada escaneo (`ScanContext.language` → `assessment::build`)
-  por lo que el cambio en tiempo real se aplica al siguiente análisis; un
-  valor desconocido cae en `en` solo como fallback técnico (un `es` explícito
-  siempre produce español). Cada `ScanResult` almacena `language` para que el
-  historial conserve su idioma. Los términos técnicos (APIs, hashes, nombres y
-  categorías de reglas) se conservan originales en ambos idiomas. Una
-  validación ligera comprueba la lengua de salida y registra desviaciones
-  (`AI LANGUAGE VALIDATION FAILED`).
-- Pruebas unitarias: veredicto limpio/malicioso, refuerzo de confianza por
-  VirusTotal, escalado del veredicto por flags externos, salida en español
-  (resumen, explicación, categorías, reglas e impacto) y en inglés, y fallback
-  de idioma para valores desconocidos.
-- **Historial persistente (corrección)**: el historial y los resultados
-  completos se guardan en `history.json` dentro del directorio de configuración
-  (`app_config_dir`), se cargan al arrancar y se persisten tras cada escaneo,
-  por lo que los análisis sobreviven al reinicio. El id estable (UUID) que ve
-  la UI en la lista es **la misma clave** con la que se guardan los resultados
-  (`guard.results.insert(entry.id, …)`), eliminando el desajuste que hacía que
-  "Más detalles" no encontrara el análisis (`get_scan_result`/`get_analysis_by_id`
-  ahora localizan el resultado por el id del historial; también arregla el
-  informe HTML/CSV y la vista previa). Las entradas antiguas sin `id` reciben
-  un id estable derivado de datos inmutables (sha256 de ruta + nombre + fecha +
-  tipo, prefijo `legacy-`) que se persiste una sola vez y no se regenera en
-  cada carga. La UI distingue explícitamente `loading` / `success` /
-  `notFound` / `error` y consulta al backend por id (sin acceder al historial
-  por índice).
-
-### FASE 9 — POLISH (UX, ACCESIBILIDAD, RENDIMIENTO) ✅
-
-- **Notificaciones (toasts)**: sistema ligero (`src/contexts/ToastContext.tsx`)
-  con tipos éxito/error/info, auto-descarte, región `aria-live` y botón de
-  cierre; sustituye a los `window.alert` de análisis, cuarentena e informes.
-- **Accesibilidad**:
-  - `aria-label` en botones de solo icono (idioma/tema, copiar hash).
-  - `role="status"` / `aria-live="polite"` en avisos de escaneo, cuarentena
-    e informes; `role="alert"` en errores de página.
-  - Modal de vista previa del informe como `role="dialog"` con `aria-modal`,
-    cierre con `Escape`, foco al botón de cerrar y restauración del foco.
-- **Animaciones** (`src/index.css`): transición de página existente +
-  animaciones de aparición para modales (`va-pop`) y toasts (`va-toast`),
-  micro-interacción de presión en botones y **soporte de
-  `prefers-reduced-motion`** que anula animaciones y transiciones.
-- **Rendimiento**:
-  - Carga diferida de páginas con `React.lazy` + `Suspense` (code splitting):
-    el bundle principal baja de ~361 KB a ~277 KB y cada página se carga bajo
-    demanda.
-  - `React.memo` en `LevelBadge`, `SeverityBadge` y `StatCard` (renderizados
-    en listas).
-  - `useDeferredValue` en la búsqueda de Results para mantener la UI fluida.
-
-### FASE 8 — REPORTING (HTML / CSV) ✅
-
-- **Informes autocontenidos** (`src-tauri/src/report/mod.rs`): generados a
-  partir de los resultados ya almacenados en memoria; el módulo **nunca**
-  vuelve a escanear ni consulta VirusTotal.
-- **HTML**: documento autocontenido (CSS embebido, sin scripts ni recursos
-  externos) con secciones de resumen, evaluación de la IA (veredicto,
-  confianza, explicación), hallazgos, análisis estático, reputación de
-  VirusTotal, hashes y línea temporal. Todo dato de archivos/usuario se
-  escapa para evitar inyección de HTML.
-- **CSV** (RFC 4180, campos con comas/comillas escapados): informe de archivo
-  en una fila (id, hashes, score, nivel, veredicto, confianza, hallazgos,
-  evidencia, conteos de VirusTotal) e informe de carpeta en dos secciones
-  (resumen + listado de archivos con hashes y errores).
-- Admite tanto análisis de **archivo** como de **carpeta** (detección
-  automática por el contenido del resultado).
-- Comandos Tauri: `export_report` (escribe el archivo) y `preview_report`
-  (devuelve el contenido para vista previa).
-- UI: botones **Vista previa / Exportar HTML / Exportar CSV** en la página de
-  análisis (diálogo de guardado nativo con extensión por defecto) y **vista
-  previa** en un modal (HTML renderizado en iframe sandbox, CSV como texto).
-- Pruebas unitarias: escape de nombres peligrosos, secciones del HTML,
-  escape CSV y despacho por tipo de resultado.
-
-### FASE 7 — QUARANTINE (AISLAR / RESTAURAR / ELIMINAR) ✅
-
-- **Aislar** (`src-tauri/src/quarantine/mod.rs`): mueve el archivo (no lo
-  copia) a un directorio de cuarentena —el configurado por el usuario en
-  Ajustes o la carpeta de datos de la app— con nombre seguro `Q-<año>-<secuencia>`
-  y registra la metadata en un manifiesto `manifest.json` (ruta original,
-  nombre, hashes, tamaño, motivo, nivel y fecha).
-- **Restaurar**: devuelve el archivo a su ubicación original recreando los
-  directorios si es necesario. **No sobrescribe** rutas existentes: si la
-  ubicación original ya está ocupada, rechaza la operación para no perder
-  datos.
-- **Eliminar definitivamente**: borra el blob y su registro del manifiesto.
-- **Regla de seguridad**: nunca se aísla ni se elimina un archivo
-  automáticamente por tener una puntuación alta; siempre es una acción
-  explícita del usuario (con confirmación en la UI).
-- Comandos Tauri: `quarantine_file`, `get_quarantine` (directorio + entradas),
-  `restore_quarantined`, `delete_quarantined`.
-- UI: página **Cuarentena** real (tabla con ID, archivo, ruta original, nivel,
-  tamaño, fecha, motivo y acciones Restaurar/Eliminar, directorio efectivo,
-  estados de carga/error), botón **Aislar** en el análisis de archivo y
-  configuración de la **carpeta de cuarentena** en Ajustes (selector de
-  carpeta y restablecimiento al valor por defecto).
-- Pruebas unitarias: mover/restaurar ida y vuelta, rechazo de sobrescritura,
-  borrado y secuenciación de IDs.
-
-### FASE 3 — STATIC ANALYSIS ✅
-
-- Detección de tipo por **magic bytes** (crate `infer`) con fallback por
-  extensión (scripts, documentos…).
-- **Entropía de Shannon** global (streaming) y por sección PE.
-- **Parser PE propio** (`src-tauri/src/analyzer/pe.rs`, sin dependencias de
-  formato): cabeceras DOS/NT, arquitectura (x86/x64/arm…), subsistema,
-  punto de entrada, base de imagen, marca de tiempo, secciones con flags y
-  entropía, **imports** (DLL + funciones), **exports** y detección de
-  **certificado Authenticode**.
-- Integrado en el escaneo de archivo individual: `ScanResult.staticAnalysis`
-  se rellena y la línea temporal refleja cada etapa.
-- UI: tarjeta de análisis estático en Analysis (tipo, entropía con barra,
-  resumen PE, tabla de secciones, imports expandibles, exports).
-- Prueba unitaria que valida el parser contra el propio binario de test.
-
-### FASE 2 — FILE SCANNER ✅
-
-- Hashing streaming de MD5, SHA-1 y SHA-256 (`src-tauri/src/hashing/mod.rs`),
-  con las tres opciones configurables desde `AppConfig.scan`.
-- Escaneo de archivo individual y de carpeta recursiva en un hilo aparte,
-  con **progreso por eventos**, **cancelación** y respeto de
-  `maxFileSizeMb` / `followSymlinks`.
-- Historial de análisis **en memoria** (`ScanStore`) con resultados
-  completos indexados por id.
-- Comandos Tauri: `scan_path`, `cancel_scan`, `get_scan_history`,
-  `get_scan_result`, `get_path_info`.
-- Eventos: `scan-progress`, `scan-completed`, `scan-error`, `scan-cancelled`.
-- Frontend: selección de archivo/carpeta (plugin dialog), **drag & drop**
-  nativo, barra de progreso, cancelación, página Results con historial
-  real y búsqueda, página Analysis con hashes (copiar), timeline y resumen
-  de carpetas. Dashboard muestra el historial real.
-- El análisis heurístico (findings/scoring) llega en FASE 4; hasta entonces
-  todo se marcaba `Clean` sin inventar resultados.
-
-### Roadmap
-
-| Fase | Contenido | Estado |
-| ---- | --------- | ------ |
-| 1 | Foundation (navegación, temas, idiomas, configuración) | ✅ |
-| 2 | File Scanner (archivos/carpetas, drag & drop, hashes) | ✅ |
-| 3 | Static Analysis (PE, entropía, imports, secciones, firmas) | ✅ |
-| 4 | Heuristic Engine (reglas, findings, scoring, niveles) | ✅ |
-| 5 | VirusTotal (opcional, por hash, consentimiento explícito) | ✅ |
-| 6 | AI Assessment (explicación basada en evidencia) | ✅ |
-| 7 | Quarantine (aislar / restaurar / eliminar) | ✅ |
-| 8 | Reporting (HTML / CSV) | ✅ |
-| 9 | Polish (UX, animaciones, accesibilidad, rendimiento) | ✅ |
+The project is built with **React + TypeScript + Tauri 2 + Rust**, with a focus on performance, transparency, modularity, and explainable results.
 
 ---
 
-## Requisitos
+## ✨ Features
 
-- Windows 10/11 con WebView2 Runtime.
-- Node.js 20+ (instalado en `M:\DevTools\nodejs` en este entorno).
-- Rust stable (MSVC toolchain) — `M:\DevTools\rustup` / `M:\DevTools\cargo`.
-- Microsoft Visual C++ Build Tools (con la carga de trabajo VCTools) —
-  `M:\DevTools\VSBuildTools`.
+### 🔍 File Analysis
 
-## Comandos
+* Single-file analysis.
+* Recursive folder scanning.
+* Drag & Drop support.
+* SHA-256 hashing.
+* SHA-1 hashing.
+* MD5 hashing.
+* Static analysis.
+* Heuristic detection.
+* Threat scoring from **0–100**.
+* Threat levels:
 
-```bash
-# Instalar dependencias
-npm install
+  * 🟢 Clean
+  * 🟡 Low
+  * 🟠 Medium
+  * 🔴 High
+  * 🛑 Critical
 
-# Desarrollo (con hot reload de Tauri + Vite)
-npm run tauri dev
+### 🧬 Static Analysis
 
-# Compilar frontend (verificación TS)
-npm run build
+VirusAnalyzer can analyze supported Windows executables and inspect characteristics such as:
 
-# Build de producción (instalador en src-tauri/target/release/bundle)
-npm run tauri build
+* PE structure.
+* Sections.
+* Imports.
+* Entry point.
+* Architecture.
+* Entropy.
+* Digital signatures.
+* Potentially suspicious APIs.
+* Other static indicators.
+
+The goal is to provide **evidence and context**, rather than simply returning a binary "virus / not virus" result.
+
+### 🧠 Heuristic Analysis
+
+The analysis engine combines multiple indicators to calculate a threat score.
+
+For example:
+
+```text
+Suspicious API usage       +25
+High entropy               +15
+Persistence indicator      +20
+Unsigned executable        +10
+External reputation        +8
+                           ───
+                            78/100
 ```
 
-## Estructura
+Every score should be explainable through the findings that contributed to it.
 
+### 🤖 AI-Assisted Assessment
+
+The AI layer interprets the evidence collected by the analysis engine and provides:
+
+* Prediction.
+* Confidence.
+* Explanation.
+* Indicators.
+* Potential impact.
+* System consequences.
+* Recommended actions.
+* Potential attack vector.
+
+The AI is designed as an **explanatory analysis layer**, not as the sole malware detection mechanism.
+
+The selected application language is respected by the AI output.
+
+### 🌐 VirusTotal Integration
+
+VirusAnalyzer can optionally integrate with the VirusTotal API.
+
+When configured, the application can use file hashes to obtain external reputation information.
+
+VirusTotal integration is optional and requires an API key.
+
+Files should not be uploaded to external services automatically without explicit user consent.
+
+### 🔒 Quarantine
+
+Suspicious files can be isolated from their original location.
+
+The quarantine system stores metadata such as:
+
+* Original path.
+* File hash.
+* Quarantine ID.
+* Date.
+* Reason for quarantine.
+
+Users can:
+
+* View quarantined files.
+* Restore files.
+* Permanently delete files.
+
+### 💻 PowerShell
+
+VirusAnalyzer includes an advanced PowerShell module for Windows diagnostics and administration.
+
+Features include:
+
+* PowerShell command execution.
+* Standard output.
+* Error output.
+* Exit codes.
+* Execution duration.
+* Command cancellation.
+* Command history.
+* Favorites.
+* Command reference.
+* Command risk classification.
+
+PowerShell commands execute with the permissions of the current Windows user.
+
+**VirusAnalyzer does not automatically execute PowerShell commands during malware analysis.**
+
+### 📊 Analysis History
+
+Every completed analysis can be stored in the local history.
+
+History includes information such as:
+
+* File name.
+* Path.
+* Hashes.
+* Timestamp.
+* Threat score.
+* Threat level.
+* Findings.
+* Analysis information.
+* AI assessment.
+* External reputation when available.
+
+### 📄 Reports
+
+Analysis results can be exported as:
+
+* HTML.
+* CSV.
+
+Reports can contain:
+
+* File information.
+* Hashes.
+* Threat score.
+* Threat level.
+* Findings.
+* Evidence.
+* Reputation information.
+* AI assessment.
+* Recommendations.
+
+### 🖥️ Windows Integration
+
+VirusAnalyzer supports Windows-specific functionality including:
+
+* Native notifications.
+* Windows context-menu integration.
+* System information.
+* PowerShell integration.
+
+---
+
+# 🏗️ Architecture
+
+VirusAnalyzer uses a hybrid desktop architecture.
+
+```text
+┌──────────────────────────────────────────┐
+│              VIRUSANALYZER               │
+├──────────────────────────────────────────┤
+│                                          │
+│              React + TypeScript          │
+│                     │                    │
+│                     ▼                    │
+│                 Tauri 2                  │
+│                     │                    │
+│                     ▼                    │
+│                  Rust                    │
+│                     │                    │
+│       ┌─────────────┼─────────────┐      │
+│       ▼             ▼             ▼      │
+│    Scanner       Analyzer      Hashing   │
+│       │             │             │      │
+│       ├─────────────┼─────────────┤      │
+│       ▼             ▼             ▼      │
+│   Heuristics    VirusTotal    Quarantine │
+│                                          │
+└──────────────────────────────────────────┘
 ```
-├── src/                      # Frontend React
-│   ├── components/           # layout/ y ui/
-│   ├── pages/                # una página por sección
-│   ├── lib/                  # i18n, tauri, defaults, format
-│   ├── hooks/
-│   ├── types/                # tipos base compartidos
-│   ├── contexts/             # Config, Theme, Language
-│   ├── App.tsx               # rutas
-│   ├── main.tsx
-│   └── index.css             # tema Tailwind (claro/oscuro)
+
+## Technology Stack
+
+| Layer               | Technology            |
+| ------------------- | --------------------- |
+| Frontend            | React                 |
+| Language            | TypeScript            |
+| Styling             | Tailwind CSS          |
+| Build Tool          | Vite                  |
+| Desktop Framework   | Tauri 2               |
+| Backend             | Rust                  |
+| HTTP                | reqwest               |
+| Serialization       | serde / serde_json    |
+| Hashing             | SHA-256 / SHA-1 / MD5 |
+| Platform            | Windows               |
+| External Reputation | VirusTotal API        |
+
+---
+
+# 📁 Project Structure
+
+```text
+VirusAnalyzer/
 │
-├── src-tauri/                # Backend Rust
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── lib/
+│   ├── hooks/
+│   ├── contexts/
+│   ├── types/
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css
+│
+├── src-tauri/
 │   ├── src/
-│   │   ├── lib.rs            # comandos Tauri
-│   │   ├── models.rs         # tipos compartidos (ScanResult, Finding...)
-│   │   ├── config/           # configuración JSON + migraciones
-│   │   ├── system/           # información del sistema
-│   │   ├── scanner/          # escaneo de archivos/carpetas + historial
-│   │   ├── analyzer/         # análisis estático (tipo, entropía, PE, keywords)
-│   │   ├── hashing/          # MD5, SHA-1, SHA-256 (streaming)
-│   │   ├── rules/            # reglas heurísticas: catálogo, evaluate, scoring
-│   │   ├── assessment/       # evaluación explicativa basada en evidencia (FASE 6)
-│   │   ├── virustotal/       # reputación por hash (FASE 5)
-│   │   ├── quarantine/       # aislar / restaurar / eliminar (FASE 7)
-│   │   └── report/           # informes HTML / CSV (FASE 8)
+│   │   ├── main.rs
+│   │   ├── lib.rs
+│   │   ├── scanner/
+│   │   ├── analyzer/
+│   │   ├── hashing/
+│   │   ├── quarantine/
+│   │   ├── virustotal/
+│   │   ├── rules/
+│   │   ├── config/
+│   │   ├── powershell/
+│   │   └── system/
+│   │
 │   ├── Cargo.toml
 │   └── tauri.conf.json
 │
 ├── public/
 ├── package.json
+├── README.md
+├── LICENSE
 └── .gitignore
 ```
 
-## Flujo Frontend → Tauri → Rust
+---
 
-1. El frontend llama `invoke("nombre_comando", { args })` (ver `src/lib/tauri.ts`).
-2. Tauri enruta al comando Rust correspondiente (`src-tauri/src/lib.rs`).
-3. Rust accede al sistema (archivos, hashes, red) y devuelve datos
-   serializados en `camelCase` con `serde`.
-4. El frontend actualiza la UI; los errores se capturan y muestran de forma
-   controlada.
+# 🚀 Installation
 
-## Seguridad
+## Requirements
 
-- Análisis **estático**: nunca se ejecutan los archivos analizados.
-- VirusTotal es opcional y se consulta por hash; nunca se suben archivos sin
-  consentimiento explícito.
-- La API key de VirusTotal se guarda en la configuración y nunca se registra.
-- PowerShell se trata como función administrativa avanzada, separada del
-  análisis y sin ejecución automática. El ejecutor (`src-tauri/src/powershell.rs`)
-  arranca `powershell.exe` con los permisos del usuario, con timeout de 30 s,
-  cancelación explícita y una única ejecución a la vez; nunca usa `cmd.exe` ni
-  eleva privilegios. Los comandos de alto riesgo (`powershell_reference.rs`)
-  exigen confirmación explícita en la interfaz. El historial local
-  (`va:ps:history`, `va:ps:favorites`) filtra comandos que parecen contener
-  secretos (passwords, tokens, claves…). La referencia (`/ps-reference`) es un
-  catálogo educativo localizado (26 comandos en 7 categorías): cargar un comando
-  rellena la terminal pero nunca lo ejecuta.
-- Validación de rutas y entradas; errores controlados en ambos extremos.
+Before building VirusAnalyzer, make sure you have the required development environment installed:
 
-## Menú contextual de Windows
+* Windows 10/11.
+* Node.js.
+* npm.
+* Rust.
+* Tauri prerequisites.
 
-- **Integración con el Explorador** (`src-tauri/src/contextmenu.rs`): registra
-  «Analizar con VirusAnalyzer» en `HKCU\Software\Classes\*\shell\VirusAnalyzer`
-  usando `reg.exe` (binario del sistema, sin pasar por un shell). Solo afecta
-  al **usuario actual** y no requiere privilegios de administrador.
-- Se aplica a **archivos y carpetas** (`*`); incluye el icono de la app y
-  ejecuta `"<ruta del ejecutable>" "%1"`.
-- **Toggle en Ajustes** (estado real consultado al abrir la página): activar/
-  desactivar con feedback por toast; la preferencia se refleja en
-  `contextMenuEnabled` de la configuración.
-- **Análisis directo al lanzar**: el menú abre la aplicación pasando la ruta
-  como argumento; `take_launch_path` la entrega una sola vez al frontend, que
-  navega a `/scan?path=<ruta>` y el escaneo arranca automáticamente (acción
-  explícita del usuario, no automática).
-- Comandos Tauri: `install_context_menu`, `uninstall_context_menu`,
-  `is_context_menu_installed`, `take_launch_path`.
+Then clone the repository:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/VirusAnalyzer.git
+cd VirusAnalyzer
+```
+
+Install frontend dependencies:
+
+```bash
+npm install
+```
+
+---
+
+# 🧪 Development
+
+Run the application in development mode:
+
+```bash
+npm run tauri dev
+```
+
+The frontend development server is handled by Vite.
+
+---
+
+# 📦 Build
+
+Build the production application:
+
+```bash
+npm run tauri build
+```
+
+The generated Windows binaries and installers will be placed in the Tauri build output directory.
+
+---
+
+# ⚙️ Configuration
+
+VirusAnalyzer stores application configuration locally.
+
+Configuration can include:
+
+```text
+Language
+Theme
+VirusTotal API key
+Context menu settings
+Other application preferences
+```
+
+API keys and credentials should **never be committed to Git**.
+
+Use environment/configuration examples when sharing development configuration.
+
+---
+
+# 🔐 Security
+
+VirusAnalyzer is a security analysis tool, so security is a core design consideration.
+
+The application is designed to:
+
+* Perform static analysis without executing suspicious files.
+* Avoid automatically executing analyzed files.
+* Keep PowerShell execution separate from malware analysis.
+* Validate user input.
+* Handle file paths carefully.
+* Avoid unnecessary privileges.
+* Keep external reputation services optional.
+* Avoid automatically uploading files to third-party services.
+* Provide transparent evidence for threat assessments.
+
+PowerShell commands execute with the permissions of the current Windows user.
+
+Users should only execute commands they understand and trust.
+
+---
+
+# ⚠️ Disclaimer
+
+VirusAnalyzer is a **malware analysis and threat assessment tool**.
+
+It is **not a replacement for a professional endpoint security product or antivirus solution**.
+
+A result such as:
+
+```text
+Clean
+```
+
+does **not** guarantee that a file is completely safe.
+
+Likewise, a:
+
+```text
+High
+Critical
+```
+
+rating represents an assessment based on the available evidence and does not necessarily prove that a file is malware.
+
+The project is intended for:
+
+* Security research.
+* Education.
+* Malware analysis.
+* System diagnostics.
+* Threat assessment.
+* Defensive security experimentation.
+
+Always exercise caution when analyzing unknown files.
+
+---
+
+# 🧠 Design Philosophy
+
+VirusAnalyzer follows three principles:
+
+### Analyze
+
+Collect technical evidence from files and the Windows environment.
+
+### Understand
+
+Explain why an analysis produced a particular result.
+
+### Protect
+
+Provide practical defensive actions such as quarantine and further investigation.
+
+The objective is not simply:
+
+```text
+"This file is a virus."
+```
+
+Instead:
+
+```text
+"This file received a threat score of 78/100
+because these specific indicators were detected."
+```
+
+Transparency and explainability are fundamental to the project.
+
+---
+
+# 🌎 Internationalization
+
+VirusAnalyzer supports multiple languages.
+
+Currently supported:
+
+* 🇪🇸 Spanish
+* 🇺🇸 English
+
+The interface and AI-generated assessments are designed to follow the language selected by the user.
+
+Technical identifiers such as:
+
+```text
+SHA-256
+KERNEL32.dll
+CreateProcessW
+PowerShell
+```
+
+remain in their conventional technical form when appropriate.
+
+---
+
+# 🛠️ Roadmap
+
+Future development may include:
+
+* [ ] Advanced PE analysis.
+* [ ] More static analysis techniques.
+* [ ] Expanded heuristic rule engine.
+* [ ] YARA rule support.
+* [ ] More file format analysis.
+* [ ] Improved reputation analysis.
+* [ ] Enhanced threat scoring.
+* [ ] More detailed analysis timelines.
+* [ ] Advanced reporting.
+* [ ] SQLite-based persistence.
+* [ ] Automated testing suite.
+* [ ] Improved Windows integration.
+* [ ] Additional languages.
+
+The roadmap may change as the project evolves.
+
+---
+
+# 🤝 Contributing
+
+Contributions, bug reports and suggestions are welcome.
+
+Before submitting a pull request:
+
+1. Test your changes.
+2. Make sure the application builds successfully.
+3. Avoid committing secrets or API keys.
+4. Keep frontend and backend responsibilities separated.
+5. Document significant architectural changes.
+
+For bugs, please include:
+
+* Windows version.
+* VirusAnalyzer version.
+* Steps to reproduce.
+* Expected behavior.
+* Actual behavior.
+* Relevant logs or screenshots.
+
+---
+
+# 📜 License
+
+This project is distributed under the license included in this repository.
+
+See:
+
+```text
+LICENSE
+```
+
+for the complete terms.
+
+---
+
+# ⭐ Project
+
+**VirusAnalyzer**
+
+> Analyze. Understand. Protect.
+
+A Windows-focused malware analysis and threat assessment application built with **React, TypeScript, Tauri 2 and Rust**.
+
+If you find the project useful, consider giving it a ⭐ on GitHub.
