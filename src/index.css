@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* Tema oscuro por defecto; el modo claro se activa con la clase .dark ausente */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --va-bg: #f4f6fa;
+  --va-surface: #ffffff;
+  --va-surface-2: #eef1f7;
+  --va-line: #dfe4ee;
+  --va-ink: #1a2233;
+  --va-muted: #5b6577;
+  --va-accent: #0284c7;
+  --va-good: #059669;
+  --va-warn: #d97706;
+  --va-bad: #ea580c;
+  --va-critical: #e11d48;
+  --va-info: #0369a1;
+}
+
+.dark {
+  --va-bg: #0a0f1a;
+  --va-surface: #101726;
+  --va-surface-2: #1a2436;
+  --va-line: #232f45;
+  --va-ink: #e8ecf4;
+  --va-muted: #8b96ab;
+  --va-accent: #38bdf8;
+  --va-good: #34d399;
+  --va-warn: #fbbf24;
+  --va-bad: #fb923c;
+  --va-critical: #f43f5e;
+  --va-info: #60a5fa;
+}
+
+@theme inline {
+  --color-background: var(--va-bg);
+  --color-surface: var(--va-surface);
+  --color-surface-2: var(--va-surface-2);
+  --color-line: var(--va-line);
+  --color-ink: var(--va-ink);
+  --color-muted: var(--va-muted);
+  --color-accent: var(--va-accent);
+  --color-good: var(--va-good);
+  --color-warn: var(--va-warn);
+  --color-bad: var(--va-bad);
+  --color-critical: var(--va-critical);
+  --color-info: var(--va-info);
+}
+
+@theme {
+  --font-sans: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Cascadia Code", ui-monospace, "Consolas", "Courier New", monospace;
+
+  --animate-va-fade-up: va-fade-up 0.25s ease-out both;
+  --animate-va-pop: va-pop 0.15s ease-out both;
+  --animate-va-toast: va-toast 0.2s ease-out both;
+
+  @keyframes va-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes va-pop {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes va-toast {
+    from {
+      opacity: 0;
+      transform: translateX(14px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* Usuarios que prefieren menos movimiento: anula animaciones y transiciones */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--va-line);
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--va-bg);
+    color: var(--va-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--va-accent) 30%, transparent);
+  }
+
+  /* Scrollbars discretos y consistentes con el tema */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in srgb, var(--va-muted) 35%, transparent);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--va-muted) 55%, transparent);
+  }
+}
