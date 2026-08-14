@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%favicon.svg" />
+    <meta name="theme-color" content="#0a0f1a" />
+    <script>
+      (function () {
+        var q = new URLSearchParams(window.location.search).get("q");
+        if (q) {
+          window.history.replaceState({}, "", q);
+        }
+      })();
+    </script>
+    <meta
+      name="description"
+      content="VirusAnalyzer is a Windows malware analysis and threat assessment tool for analyzing suspicious files, hashes and security indicators."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="og:site_name" content="VirusAnalyzer" />
+    <title>VirusAnalyzer — Windows Malware Analysis Tool</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

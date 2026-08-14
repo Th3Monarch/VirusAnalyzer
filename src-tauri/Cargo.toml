@@ -1,7 +1,7 @@
 [package]
 name = "virusanalyzer"
-version = "0.1.0"
-description = "VirusAnalyzer 2.0 - Analiza archivos sospechosos y comprende su riesgo."
+version = "2.0.0"
+description = "Windows malware analysis and threat assessment tool"
 authors = ["VirusAnalyzer"]
 edition = "2021"
 

@@ -30,4 +30,9 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  build: {
+    // 4. build the frontend outside `dist/` so that folder is reserved
+    //    for the final distributables (setup/exe/portable + checksums)
+    outDir: "dist-app",
+  },
 }));

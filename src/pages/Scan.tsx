@@ -100,7 +100,7 @@ export function Scan() {
           if (event.scanId === scanId) {
             setStatus("done");
             setProgress((p) => ({ ...p, current: p.total }));
-            navigate(`/analysis/${event.scanId}`);
+            navigate(`/analysis/${event.entry.id}`);
           }
           break;
         case "error":

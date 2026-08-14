@@ -283,9 +283,141 @@ npm run tauri dev
 # Compilar frontend (verificación TS)
 npm run build
 
-# Build de producción (instalador en src-tauri/target/release/bundle)
-npm run tauri build
+# Distribución completa de Windows (Setup + exe + portable + SHA-256 en dist/)
+npm run build:windows
+
+# Solo la distribución portable (exe + zip + SHA-256 en dist/)
+npm run build:portable
 ```
+
+## Descargas
+
+Tras ejecutar `npm run build:windows`, la carpeta `dist/` contiene las tres
+distribuciones y sus checksums SHA-256:
+
+```text
+dist/
+├── VirusAnalyzer-2.0.0-Setup.exe
+├── VirusAnalyzer-2.0.0.exe
+├── VirusAnalyzer-2.0.0-Portable.zip
+├── VirusAnalyzer-2.0.0-Setup.exe.sha256
+├── VirusAnalyzer-2.0.0.exe.sha256
+└── VirusAnalyzer-2.0.0-Portable.zip.sha256
+```
+
+### Instalador (`VirusAnalyzer-2.0.0-Setup.exe`)
+
+**Opción recomendada para la mayoría de usuarios.** Instalador NSIS que
+instala VirusAnalyzer para el usuario actual (`%LOCALAPPDATA%\VirusAnalyzer`),
+crea accesos directos en el menú Inicio y en el escritorio, registra la
+aplicación en "Agregar o quitar programas", incluye desinstalador y usa el
+icono oficial. La versión se lee de la configuración del proyecto.
+
+### Portable (`VirusAnalyzer-2.0.0-Portable.zip`)
+
+Para usuarios que no quieren instalar la aplicación: se extrae en cualquier
+carpeta (`C:\Apps\VirusAnalyzer\`, `D:\Portable\VirusAnalyzer\`, un USB…)
+y se ejecuta directamente `VirusAnalyzer.exe`. No depende de rutas del equipo
+de desarrollo. El frontend va embebido en el ejecutable, por lo que el ZIP
+contiene únicamente el binario real de Tauri. Requiere el **WebView2 Runtime**
+de Windows (incluido en Windows 11 y en la mayoría de Windows 10). La
+configuración y el historial se guardan en la carpeta de datos de la
+aplicación (`%APPDATA%\com.virusanalyzer.desktop`).
+
+### Ejecutable (`VirusAnalyzer-2.0.0.exe`)
+
+Distribución avanzada/manual: el binario release real generado por
+Rust/Tauri, sin instalador. Útil para copias puntuales, pero comparte los
+requisitos del portable (WebView2 Runtime) y no crea accesos ni registro.
+
+### Verificación de integridad
+
+```bash
+sha256sum -c VirusAnalyzer-2.0.0-Setup.exe.sha256
+# o en Windows:
+certutil -hashfile VirusAnalyzer-2.0.0-Setup.exe SHA256
+```
+
+### Firma de código
+
+Los binarios **no están firmados** (`Code signing status: Unsigned`): Windows
+Defender/SmartScreen pueden mostrar advertencias al ejecutarlos, y la ausencia
+de firma es un factor que los motores heurísticos (incluido el `!ml` de
+Microsoft) suelen considerar sospechoso en binarios recién compilados.
+
+No se utilizan certificados autofirmados ni se simula una firma de confianza.
+El proyecto está **preparado para firmar con un certificado Authenticode
+legítimo** sin almacenar ningún secreto en el repositorio: el build solo firma
+cuando las credenciales están disponibles en el entorno.
+
+`npm run build:windows` ejecuta Tauri con `bundle.windows.signCommand`
+(`tauri.conf.json`), que invoca `scripts/sign.ps1` para cada binario firmable:
+el ejecutable principal, los plugins NSIS, el instalador y el desinstalador
+embebido. El script lee toda la configuración de variables de entorno:
+
+| Variable | Uso |
+| --- | --- |
+| `VA_SIGN_THUMBPRINT` | Huella del certificado instalado en el almacén de Windows. **No requiere contraseña** (opción recomendada). |
+| `VA_SIGN_PFX` | Ruta a un archivo `.pfx` (usar junto a `VA_SIGN_PASSWORD`). |
+| `VA_SIGN_PASSWORD` | Contraseña del `.pfx`. Nunca se registra ni se guarda. |
+| `VA_SIGN_TIMESTAMP_URL` | *(opcional)* Servidor RFC3161. Por defecto `http://timestamp.digicert.com`. |
+| `VA_SIGN_SIGNTOOL` | *(opcional)* Ruta explícita a `signtool.exe`. Si no se define, se busca en el PATH y en el Windows SDK. |
+
+Si no se define `VA_SIGN_THUMBPRINT` ni `VA_SIGN_PFX`, la firma se omite y el
+build continúa (los binarios quedan sin firmar).
+
+**Preparación (certificado en el almacén, sin contraseñas):**
+
+```powershell
+# Importa tu .pfx al almacén del usuario (pedirá la contraseña una vez).
+Import-PfxCertificate -FilePath "C:\certs\mi-cert.pfx" -CertStoreLocation Cert:\CurrentUser\My
+
+# Copia la huella (Thumbprint) del certificado.
+Get-ChildItem Cert:\CurrentUser\My | Format-Table Subject, Thumbprint
+
+# Guárdala como variable de entorno (persistente):
+setx VA_SIGN_THUMBPRINT "A1B2C3D4..."
+# o solo para el build actual:
+$env:VA_SIGN_THUMBPRINT = "A1B2C3D4..."
+```
+
+**Alternativa con `.pfx`:**
+
+```powershell
+$env:VA_SIGN_PFX = "C:\certs\mi-cert.pfx"
+$env:VA_SIGN_PASSWORD = "MiContraseña"
+```
+
+**Verificación tras el build:**
+
+```powershell
+Get-AuthenticodeSignature "dist\VirusAnalyzer-2.0.0-Setup.exe" | Format-List Status, StatusMessage, SignerCertificate
+# y para ver la cadena completa:
+signtool verify /pa /v "dist\VirusAnalyzer-2.0.0-Setup.exe"
+```
+
+Alternativa equivalente sin `scripts/sign.ps1`: fijar `bundle.windows.certificateThumbprint` en `tauri.conf.json`, que usa la configuración incorporada de Tauri con `signtool` (requiere que el certificado esté en el almacén y fallará el build si no lo está).
+
+## Detecciones antivirus
+
+VirusAnalyzer es una aplicación defensiva de análisis de malware. Algunos
+motores antivirus pueden marcar aplicaciones de Windows recién compiladas o sin
+firmar. Si VirusAnalyzer es detectado:
+
+- **Verifica el hash SHA-256** de la distribución contra los `.sha256` de
+  `dist/` antes de asumir que el archivo es malicioso.
+- **Revisa la detección**: la detección `Trojan:Win32/Wacatac.B!ml` (sufijo
+  `!ml`) corresponde a la heurística de aprendizaje automático de Microsoft,
+  no a una firma de un comportamiento específico.
+- **Revisa el código fuente**: el proyecto no utiliza ofuscación, packing,
+  anti-análisis ni técnicas de evasión de antivirus. Todo el comportamiento
+  (escaneo estático, consulta a VirusTotal por hash solo si se habilita,
+  cuarentena manual, PowerShell bajo demanda del usuario, menú contextual
+  opcional) está documentado en este README.
+
+El proyecto se distribuye sin firma de código; obtener un certificado de firma
+de código legítimo y firmar los releases es la mitigación más eficaz para la
+mayoría de estas advertencias.
 
 ## Estructura
 
@@ -319,6 +451,10 @@ npm run tauri build
 │   └── tauri.conf.json
 │
 ├── public/
+├── scripts/
+│   └── package.ps1           # ensambla dist/ (setup, exe, portable, SHA-256)
+├── dist/                     # distribuciones finales (generado)
+├── dist-app/                 # build del frontend para Tauri (generado)
 ├── package.json
 └── .gitignore
 ```
