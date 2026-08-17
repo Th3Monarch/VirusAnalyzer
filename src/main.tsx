@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { ConfigProvider } from "./contexts/ConfigContext";
+import { PlatformProvider } from "./contexts/PlatformContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -12,9 +13,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <ConfigProvider>
       <ThemeProvider>
         <LanguageProvider>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
+          <PlatformProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </PlatformProvider>
         </LanguageProvider>
       </ThemeProvider>
     </ConfigProvider>

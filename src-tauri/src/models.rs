@@ -21,6 +21,19 @@ pub enum ThreatLevel {
     Critical,
 }
 
+/// Riesgo educativo de un comando (terminal / shell).
+///
+/// Se usa tanto en la referencia de PowerShell (Windows) como en la
+/// clasificación de comandos de shell (Linux/macOS).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum RiskLevel {
+    Safe,
+    Low,
+    Medium,
+    High,
+}
+
 /// Idioma en el que se genera el contenido de la aplicación y del motor de
 /// evaluación. El motor compone el informe directamente en este idioma.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]

@@ -120,7 +120,7 @@ export function Download() {
             v{version}
           </span>
           <span className="rounded-md border border-line-2 bg-ink-2 px-2.5 py-1 text-zinc-300">
-            Windows x64
+            Windows · macOS · Linux
           </span>
           <span className="text-zinc-500">
             {t("download.requirements")}

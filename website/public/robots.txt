@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://th3monarch.github.io/VirusAnalyzer/sitemap.xml
+Sitemap: https://virusanalyzer.is-a.dev/sitemap.xml

@@ -4,6 +4,7 @@ import type {
   AppInfo,
   FolderScanResult,
   PathInfo,
+  Platform,
   PowerShellResult,
   PsCommandInfo,
   QuarantineEntry,
@@ -22,6 +23,7 @@ export interface TauriClient {
   getConfig(): Promise<AppConfig>;
   saveConfig(config: AppConfig): Promise<AppConfig>;
   getAppInfo(): Promise<AppInfo>;
+  getPlatform(): Promise<Platform>;
   getSystemInfo(): Promise<SystemInfo>;
   getPathInfo(path: string): Promise<PathInfo>;
   scanPath(path: string): Promise<string>;
@@ -50,6 +52,7 @@ export const tauri: TauriClient = {
   getConfig: () => invoke<AppConfig>("get_config"),
   saveConfig: (config) => invoke<AppConfig>("save_config", { config }),
   getAppInfo: () => invoke<AppInfo>("get_app_info"),
+  getPlatform: () => invoke<Platform>("get_platform"),
   getSystemInfo: () => invoke<SystemInfo>("get_system_info"),
   getPathInfo: (path) => invoke<PathInfo>("get_path_info", { path }),
   scanPath: (path) => invoke<string>("scan_path", { path }),

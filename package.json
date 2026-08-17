@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "build:windows": "tauri build --bundles nsis && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1 -Mode all",
-    "build:portable": "tauri build --no-bundle && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1 -Mode portable"
+    "build:portable": "tauri build --no-bundle && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package.ps1 -Mode portable",
+    "build:linux": "tauri build --bundles deb,appimage && bash scripts/package-linux.sh",
+    "build:macos": "tauri build --bundles dmg && bash scripts/package-macos.sh"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

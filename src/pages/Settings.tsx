@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useLanguage } from "../contexts/LanguageContext";
+import { usePlatform } from "../contexts/PlatformContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useConfig } from "../contexts/ConfigContext";
 import { useToast } from "../contexts/ToastContext";
@@ -26,6 +27,7 @@ export function Settings() {
   const { theme, setTheme } = useTheme();
   const { config, updateConfig } = useConfig();
   const { toast } = useToast();
+  const { isWindows } = usePlatform();
 
   const [vtKey, setVtKey] = useState(config.virustotalApiKey ?? "");
   const [notice, setNotice] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -212,38 +214,40 @@ export function Settings() {
           </div>
         </Card>
 
-        {/* Menú contextual */}
-        <Card>
-          <CardHeader
-            title={t("settings.contextMenu")}
-            subtitle={t("settings.contextMenuHelp")}
-            action={<MousePointer2 className="size-4 text-muted" />}
-          />
-          <div className="px-5 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-ink">
-                  {cmInstalled === null
-                    ? t("settings.contextMenuChecking")
-                    : cmInstalled
-                      ? t("settings.contextMenuInstalled")
-                      : t("settings.contextMenuNotInstalled")}
-                </p>
-                <p className="mt-0.5 max-w-md text-xs leading-relaxed text-muted">
-                  {t("settings.contextMenuDesc")}
-                </p>
+        {/* Menú contextual (solo Windows) */}
+        {isWindows ? (
+          <Card>
+            <CardHeader
+              title={t("settings.contextMenu")}
+              subtitle={t("settings.contextMenuHelp")}
+              action={<MousePointer2 className="size-4 text-muted" />}
+            />
+            <div className="px-5 py-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-ink">
+                    {cmInstalled === null
+                      ? t("settings.contextMenuChecking")
+                      : cmInstalled
+                        ? t("settings.contextMenuInstalled")
+                        : t("settings.contextMenuNotInstalled")}
+                  </p>
+                  <p className="mt-0.5 max-w-md text-xs leading-relaxed text-muted">
+                    {t("settings.contextMenuDesc")}
+                  </p>
+                </div>
+                <Button
+                  variant={cmInstalled ? "secondary" : "primary"}
+                  onClick={() => void toggleContextMenu()}
+                  disabled={cmInstalled === null || cmBusy}
+                >
+                  {cmBusy ? <Loader2 className="size-4 animate-spin" /> : null}
+                  {cmInstalled ? t("settings.contextMenuDisable") : t("settings.contextMenuEnable")}
+                </Button>
               </div>
-              <Button
-                variant={cmInstalled ? "secondary" : "primary"}
-                onClick={() => void toggleContextMenu()}
-                disabled={cmInstalled === null || cmBusy}
-              >
-                {cmBusy ? <Loader2 className="size-4 animate-spin" /> : null}
-                {cmInstalled ? t("settings.contextMenuDisable") : t("settings.contextMenuEnable")}
-              </Button>
             </div>
-          </div>
-        </Card>
+          </Card>
+        ) : null}
 
         {/* Almacenamiento */}
         <Card>

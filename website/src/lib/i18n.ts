@@ -120,31 +120,31 @@ export const translations: Record<Lang, Dictionary> = {
       discord: "Discord",
       configHint: "Configure “discordUrl” in src/site.config.json to add the Discord link.",
       description:
-        "Windows malware analysis and threat assessment tool. Static analysis, explainable heuristics and hash-only reputation checks.",
+        "Cross-platform malware analysis and threat assessment tool (Windows, macOS, Linux). Static analysis, explainable heuristics and hash-only reputation checks.",
       disclaimer:
         "VirusAnalyzer is an open-source analysis and threat assessment tool. It is not a replacement for a professional endpoint security solution.",
       copyright: "© {year} {app}. Analyze. Understand. Protect.",
     },
     seo: {
       home: {
-        title: "VirusAnalyzer — Windows Malware Analysis Tool",
+        title: "VirusAnalyzer — Cross-Platform Malware Analysis Tool",
         description:
-          "Analyze suspicious files with static analysis, explainable heuristic scoring and optional VirusTotal reputation checks for Windows.",
+          "Analyze suspicious files with static analysis, explainable heuristic scoring and optional VirusTotal reputation checks on Windows, macOS and Linux.",
       },
       download: {
         title: "Download — VirusAnalyzer",
         description:
-          "Download VirusAnalyzer for Windows. Verify your download with SHA-256 checksums.",
+          "Download VirusAnalyzer for Windows, macOS and Linux. Verify your download with SHA-256 checksums.",
       },
       features: {
         title: "Features — VirusAnalyzer",
         description:
-          "Static analysis, threat assessment, hash analysis and optional VirusTotal reputation checks for Windows.",
+          "Static analysis, threat assessment, hash analysis and optional VirusTotal reputation checks for Windows, macOS and Linux.",
       },
       security: {
         title: "Security — VirusAnalyzer",
         description:
-          "How VirusAnalyzer handles privacy, execution, network access, PowerShell and download verification.",
+          "How VirusAnalyzer handles privacy, execution, network access, terminal access and download verification.",
       },
       documentation: {
         title: "Documentation — VirusAnalyzer",
@@ -159,7 +159,7 @@ export const translations: Record<Lang, Dictionary> = {
       about: {
         title: "About — VirusAnalyzer",
         description:
-          "About VirusAnalyzer: a Windows tool for static malware analysis, built for learning, research and defensive security.",
+          "About VirusAnalyzer: a cross-platform tool for static malware analysis, built for learning, research and defensive security.",
       },
       changelog: {
         title: "Changelog — VirusAnalyzer",
@@ -197,11 +197,11 @@ export const translations: Record<Lang, Dictionary> = {
     },
     download: {
       eyebrow: "Download",
-      title: "{app} for Windows",
-      requirements: "Windows 10 / 11 · WebView2 Runtime",
+      title: "{app} for Windows, macOS & Linux",
+      requirements: "Windows 10+ / macOS 10.15+ / Linux (webkit2gtk)",
       recommended: "Recommended",
       downloadInstaller: "Download installer",
-      downloadPortable: "Download Portable",
+      downloadPortable: "Download portable",
       sourceTitle: "Source Code",
       sourceDesc:
         "Everything you see here is open source. Review the code, report issues and build it yourself.",
@@ -258,31 +258,31 @@ export const translations: Record<Lang, Dictionary> = {
       discord: "Discord",
       configHint: "Configura “discordUrl” en src/site.config.json para añadir el enlace de Discord.",
       description:
-        "Herramienta de análisis de malware y evaluación de amenazas para Windows. Análisis estático, heurísticas explicables y comprobaciones de reputación solo por hash.",
+        "Herramienta de análisis de malware y evaluación de amenazas multiplataforma (Windows, macOS, Linux). Análisis estático, heurísticas explicables y comprobaciones de reputación solo por hash.",
       disclaimer:
         "VirusAnalyzer es una herramienta open-source de análisis y evaluación de amenazas. No sustituye a una solución profesional de seguridad de endpoints.",
       copyright: "© {year} {app}. Analiza. Entiende. Protege.",
     },
     seo: {
       home: {
-        title: "VirusAnalyzer — Herramienta de análisis de malware para Windows",
+        title: "VirusAnalyzer — Herramienta de análisis de malware multiplataforma",
         description:
-          "Analiza archivos sospechosos con análisis estático, puntuación heurística explicable y comprobaciones opcionales de reputación en VirusTotal para Windows.",
+          "Analiza archivos sospechosos con análisis estático, puntuación heurística explicable y comprobaciones opcionales de reputación en VirusTotal para Windows, macOS y Linux.",
       },
       download: {
         title: "Descargar — VirusAnalyzer",
         description:
-          "Descarga VirusAnalyzer para Windows. Verifica tu descarga con los checksums SHA-256.",
+          "Descarga VirusAnalyzer para Windows, macOS y Linux. Verifica tu descarga con los checksums SHA-256.",
       },
       features: {
         title: "Características — VirusAnalyzer",
         description:
-          "Análisis estático, evaluación de amenazas, análisis de hashes y comprobaciones opcionales de reputación en VirusTotal para Windows.",
+          "Análisis estático, evaluación de amenazas, análisis de hashes y comprobaciones opcionales de reputación en VirusTotal para Windows, macOS y Linux.",
       },
       security: {
         title: "Seguridad — VirusAnalyzer",
         description:
-          "Cómo gestiona VirusAnalyzer la privacidad, la ejecución, el acceso a red, PowerShell y la verificación de descargas.",
+          "Cómo gestiona VirusAnalyzer la privacidad, la ejecución, el acceso a red, el acceso al terminal y la verificación de descargas.",
       },
       documentation: {
         title: "Documentación — VirusAnalyzer",
@@ -297,7 +297,7 @@ export const translations: Record<Lang, Dictionary> = {
       about: {
         title: "Acerca de — VirusAnalyzer",
         description:
-          "Acerca de VirusAnalyzer: una herramienta de análisis estático de malware para Windows, creada para el aprendizaje, la investigación y la seguridad defensiva.",
+          "Acerca de VirusAnalyzer: una herramienta multiplataforma de análisis estático de malware, creada para el aprendizaje, la investigación y la seguridad defensiva.",
       },
       changelog: {
         title: "Historial de cambios — VirusAnalyzer",
@@ -335,11 +335,11 @@ export const translations: Record<Lang, Dictionary> = {
     },
     download: {
       eyebrow: "Descargar",
-      title: "{app} para Windows",
-      requirements: "Windows 10 / 11 · WebView2 Runtime",
+      title: "{app} para Windows, macOS y Linux",
+      requirements: "Windows 10+ / macOS 10.15+ / Linux (webkit2gtk)",
       recommended: "Recomendado",
       downloadInstaller: "Descargar instalador",
-      downloadPortable: "Descargar Portable",
+      downloadPortable: "Descargar portable",
       sourceTitle: "Código fuente",
       sourceDesc:
         "Todo lo que ves aquí es código abierto. Revisa el código, informa de incidencias y compílalo tú mismo.",

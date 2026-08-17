@@ -17,6 +17,9 @@ dist-ssr
 src-tauri/target
 src-tauri/gen/schemas
 
+# Tauri signing keys (NEVER commit the private key)
+src-tauri/tauri.key
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

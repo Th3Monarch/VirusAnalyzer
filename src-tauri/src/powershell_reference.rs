@@ -11,15 +11,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::models::Language;
 
-/// Riesgo educativo de un comando.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum RiskLevel {
-    Safe,
-    Low,
-    Medium,
-    High,
-}
+/// Re-export del tipo compartido en `models`.
+pub use crate::models::RiskLevel;
 
 /// Ficha educativa de un comando de la referencia.
 #[derive(Debug, Clone, Serialize, Deserialize)]

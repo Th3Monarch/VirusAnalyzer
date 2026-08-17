@@ -226,10 +226,10 @@ const features: Feature[] = [
   },
   {
     icon: Terminal,
-    title: { en: "PowerShell Tools", es: "Herramientas PowerShell" },
+    title: { en: "Terminal Tools", es: "Herramientas de terminal" },
     description: {
-      en: "Integrated PowerShell terminal for advanced users.",
-      es: "Terminal PowerShell integrada para usuarios avanzados.",
+      en: "Integrated terminal adapted to your platform: PowerShell on Windows, POSIX shell on macOS and Linux.",
+      es: "Terminal integrada adaptada a tu plataforma: PowerShell en Windows, shell POSIX en macOS y Linux.",
     },
     points: {
       en: [
@@ -271,13 +271,13 @@ const copy = {
     eyebrow: "Features",
     title: "Powerful analysis. Simple interface.",
     intro:
-      "VirusAnalyzer helps you understand suspicious files by combining static analysis, an explainable heuristic engine and optional reputation data — all in a native Windows desktop application.",
+      "VirusAnalyzer helps you understand suspicious files by combining static analysis, an explainable heuristic engine and optional reputation data — all in a cross-platform desktop application for Windows, macOS and Linux.",
   },
   es: {
     eyebrow: "Características",
     title: "Análisis potente. Interfaz sencilla.",
     intro:
-      "VirusAnalyzer te ayuda a entender archivos sospechosos combinando análisis estático, un motor heurístico explicable y datos de reputación opcionales — todo en una aplicación de escritorio nativa para Windows.",
+      "VirusAnalyzer te ayuda a entender archivos sospechosos combinando análisis estático, un motor heurístico explicable y datos de reputación opcionales — todo en una aplicación de escritorio multiplataforma para Windows, macOS y Linux.",
   },
 } satisfies Record<"en" | "es", Record<string, string>>;
 

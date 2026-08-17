@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLanguage } from "../../contexts/LanguageContext";
+import { usePlatform } from "../../contexts/PlatformContext";
 import type { TranslationKey } from "../../lib/i18n";
 
 interface NavItem {
@@ -21,6 +22,7 @@ interface NavItem {
   label: TranslationKey;
   icon: LucideIcon;
   end?: boolean;
+  windowsOnly?: boolean;
 }
 
 interface NavSection {
@@ -50,8 +52,8 @@ const NAV_SECTIONS: NavSection[] = [
     group: "nav.tools",
     items: [
       { to: "/system", label: "nav.system", icon: MonitorCog },
-      { to: "/powershell", label: "nav.powershell", icon: SquareTerminal },
-      { to: "/ps-reference", label: "nav.psReference", icon: BookOpen },
+      { to: "/powershell", label: "nav.powershell", icon: SquareTerminal, windowsOnly: true },
+      { to: "/ps-reference", label: "nav.psReference", icon: BookOpen, windowsOnly: true },
     ],
   },
   {
@@ -62,6 +64,7 @@ const NAV_SECTIONS: NavSection[] = [
 
 export function Sidebar() {
   const { t } = useLanguage();
+  const { isWindows } = usePlatform();
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line bg-surface">
@@ -80,33 +83,39 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
-        {NAV_SECTIONS.map((section) => (
-          <div key={section.group} className="mt-4 first:mt-1">
-            <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted/70">
-              {t(section.group)}
-            </p>
-            <ul className="space-y-0.5">
-              {section.items.map((item) => (
-                <li key={item.to}>
-                  <NavLink
-                    to={item.to}
-                    end={item.end}
-                    className={({ isActive }) =>
-                      `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${
-                        isActive
-                          ? "bg-accent/10 text-accent"
-                          : "text-muted hover:bg-surface-2 hover:text-ink"
-                      }`
-                    }
-                  >
-                    <item.icon className="size-4" />
-                    {t(item.label)}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+        {NAV_SECTIONS.map((section) => {
+          const visibleItems = section.items.filter(
+            (item) => !item.windowsOnly || isWindows,
+          );
+          if (visibleItems.length === 0) return null;
+          return (
+            <div key={section.group} className="mt-4 first:mt-1">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted/70">
+                {t(section.group)}
+              </p>
+              <ul className="space-y-0.5">
+                {visibleItems.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      end={item.end}
+                      className={({ isActive }) =>
+                        `group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${
+                          isActive
+                            ? "bg-accent/10 text-accent"
+                            : "text-muted hover:bg-surface-2 hover:text-ink"
+                        }`
+                      }
+                    >
+                      <item.icon className="size-4" />
+                      {t(item.label)}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="border-t border-line px-5 py-3">

@@ -75,12 +75,12 @@ const cards: Card[] = [
   {
     icon: Terminal,
     title: {
-      en: "How PowerShell works",
-      es: "Cómo funciona PowerShell",
+      en: "How the terminal works",
+      es: "Cómo funciona el terminal",
     },
     text: {
-      en: "PowerShell is a separate administrative tool. Commands run only on explicit user request, with a timeout and one execution at a time. High-risk commands require confirmation from the interface. The scanner never invokes PowerShell.",
-      es: "PowerShell es una herramienta administrativa independiente. Los comandos se ejecutan solo bajo petición explícita del usuario, con un tiempo límite y una ejecución a la vez. Los comandos de alto riesgo requieren confirmación en la interfaz. El analizador nunca invoca PowerShell.",
+      en: "The terminal is a separate administrative tool. Commands run only on explicit user request, with a timeout and one execution at a time. High-risk commands require confirmation from the interface. The scanner never invokes the terminal.",
+      es: "El terminal es una herramienta administrativa independiente. Los comandos se ejecutan solo bajo petición explícita del usuario, con un tiempo límite y una ejecución a la vez. Los comandos de alto riesgo requieren confirmación en la interfaz. El analizador nunca invoca el terminal.",
     },
   },
   {
@@ -112,8 +112,8 @@ const cards: Card[] = [
       es: "Estado de la firma de código",
     },
     text: {
-      en: "The project supports Windows Authenticode code signing when configured. Current releases may be unsigned; this does not affect the checksum verification described above.",
-      es: "El proyecto admite la firma de código Authenticode de Windows cuando está configurada. Las versiones actuales pueden no estar firmadas; esto no afecta a la verificación de checksums descrita arriba.",
+      en: "The project supports code signing when configured. Current releases may be unsigned; this does not affect the checksum verification described above.",
+      es: "El proyecto admite la firma de código cuando está configurada. Las versiones actuales pueden no estar firmadas; esto no afecta a la verificación de checksums descrita arriba.",
     },
   },
 ];
@@ -144,7 +144,7 @@ const copy: Record<Lang, SecurityCopy> = {
       "{app} is an analysis and threat assessment tool. It is not a replacement for a professional endpoint security solution.",
     avTitle: "Antivirus detections",
     avP1:
-      "Newly compiled or unsigned Windows applications can sometimes receive heuristic antivirus detections. Antivirus engines vary in their heuristics, and a detection on a recently compiled binary is not, by itself, proof that the binary is malicious.",
+      "Newly compiled or unsigned applications can sometimes receive heuristic antivirus detections. Antivirus engines vary in their heuristics, and a detection on a recently compiled binary is not, by itself, proof that the binary is malicious.",
     avP2:
       "{app} does not intentionally use obfuscation, packing, anti-analysis techniques or antivirus evasion. Its behavior is documented and its source code is public.",
     avBullets: [
@@ -169,7 +169,7 @@ const copy: Record<Lang, SecurityCopy> = {
       "{app} es una herramienta de análisis y evaluación de amenazas. No sustituye a una solución profesional de seguridad de endpoints.",
     avTitle: "Detecciones de antivirus",
     avP1:
-      "Las aplicaciones de Windows recién compiladas o sin firmar pueden recibir a veces detecciones heurísticas de antivirus. Los motores antivirus varían en sus heurísticas, y una detección sobre un binario recién compilado no es, por sí sola, prueba de que el binario sea malicioso.",
+      "Las aplicaciones recién compiladas o sin firmar pueden recibir a veces detecciones heurísticas de antivirus. Los motores antivirus varían en sus heurísticas, y una detección sobre un binario recién compilado no es, por sí sola, prueba de que el binario sea malicioso.",
     avP2:
       "{app} no usa intencionadamente ofuscación, empaquetado, técnicas anti-análisis ni evasión de antivirus. Su comportamiento está documentado y su código fuente es público.",
     avBullets: [

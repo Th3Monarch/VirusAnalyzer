@@ -202,6 +202,9 @@ export interface FolderFileEntry {
 
 export type { PowerShellResult, PsCommandInfo, RiskLevel } from "./powershell";
 
+/** Plataforma de ejecución de la aplicación. */
+export type Platform = "windows" | "linux" | "macos";
+
 export interface FolderScanResult {
   id: string;
   folderPath: string;

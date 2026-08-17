@@ -26,9 +26,17 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJFMTlDRkIxQ0RENjE0QkEKUldTNkZOYk5zYzhaTGh4Z2JGWDJwQ0FSNjVWVGdUazdFeTNETTVkaUtyVlA1Y2haa1B0cDR3aXYK",
+      "endpoints": [
+        "https://github.com/th3monarch/VirusAnalyzer/releases/latest/download/latest.json"
+      ]
+    }
+  },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": ["nsis", "dmg", "deb", "appimage"],
     "publisher": "VirusAnalyzer",
     "category": "Utility",
     "icon": [
@@ -52,6 +60,15 @@
           "%1"
         ]
       }
+    },
+    "linux": {
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0", "libappindicator3-1"],
+        "section": "utils"
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
     }
   }
 }

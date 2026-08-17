@@ -49,8 +49,8 @@
 }
 
 @theme {
-  --font-sans: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Cascadia Code", ui-monospace, "Consolas", "Courier New", monospace;
+  --font-sans: "Segoe UI", "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Cascadia Code", "SF Mono", ui-monospace, "Consolas", "Courier New", monospace;
 
   --animate-va-fade-up: va-fade-up 0.25s ease-out both;
   --animate-va-pop: va-pop 0.15s ease-out both;

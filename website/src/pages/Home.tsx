@@ -159,10 +159,10 @@ const securityPoints: SecurityPoint[] = [
   },
   {
     icon: Lock,
-    title: { en: "User-controlled PowerShell", es: "PowerShell controlado por el usuario" },
+    title: { en: "User-controlled terminal", es: "Terminal controlado por el usuario" },
     text: {
-      en: "PowerShell runs only on explicit user request.",
-      es: "PowerShell se ejecuta solo bajo petición explícita del usuario.",
+      en: "Terminal commands run only on explicit user request.",
+      es: "Los comandos del terminal se ejecutan solo bajo petición explícita del usuario.",
     },
   },
   {
@@ -178,14 +178,14 @@ const securityPoints: SecurityPoint[] = [
 const copy: Record<"en" | "es", Record<string, LocalizedText["en"]>> = {
   en: {
     heroText:
-      "A Windows malware analysis and threat assessment tool designed to help you understand suspicious files before making a decision.",
-    downloadForWindows: "Download for Windows",
+      "A cross-platform malware analysis and threat assessment tool designed to help you understand suspicious files before making a decision.",
+    downloadForWindows: "Download for your platform",
     viewOnGitHub: "View on GitHub",
     readDocs: "Read the documentation",
-    metaLine: "Windows 10 / 11 · WebView2 Runtime · Open source",
+    metaLine: "Windows 10+ / macOS 10.15+ / Linux · Open source",
     featuresTitle: "Powerful analysis. Simple interface.",
     featuresSub:
-      "Everything you need to understand a file before you trust it — in a desktop application for Windows.",
+      "Everything you need to understand a file before you trust it — in a desktop application for Windows, macOS and Linux.",
     exploreAll: "Explore all features",
     howTitle: "How it works",
     howSub:
@@ -194,19 +194,19 @@ const copy: Record<"en" | "es", Record<string, LocalizedText["en"]>> = {
     securityCta: "Learn about our security model",
     ctaTitle: "Ready to analyze?",
     ctaText:
-      "Download for Windows and take a closer look at the files you are unsure about.",
+      "Download and take a closer look at the files you are unsure about.",
     seeWhat: "See what it can do",
   },
   es: {
     heroText:
-      "Una herramienta de análisis de malware y evaluación de amenazas para Windows, diseñada para ayudarte a entender archivos sospechosos antes de tomar una decisión.",
-    downloadForWindows: "Descargar para Windows",
+      "Una herramienta de análisis de malware y evaluación de amenazas multiplataforma, diseñada para ayudarte a entender archivos sospechosos antes de tomar una decisión.",
+    downloadForWindows: "Descargar para tu plataforma",
     viewOnGitHub: "Ver en GitHub",
     readDocs: "Leer la documentación",
-    metaLine: "Windows 10 / 11 · WebView2 Runtime · Código abierto",
+    metaLine: "Windows 10+ / macOS 10.15+ / Linux · Código abierto",
     featuresTitle: "Análisis potente. Interfaz sencilla.",
     featuresSub:
-      "Todo lo que necesitas para entender un archivo antes de confiar en él — en una aplicación de escritorio para Windows.",
+      "Todo lo que necesitas para entender un archivo antes de confiar en él — en una aplicación de escritorio para Windows, macOS y Linux.",
     exploreAll: "Explora todas las características",
     howTitle: "Cómo funciona",
     howSub:
@@ -215,7 +215,7 @@ const copy: Record<"en" | "es", Record<string, LocalizedText["en"]>> = {
     securityCta: "Conoce nuestro modelo de seguridad",
     ctaTitle: "¿Listo para analizar?",
     ctaText:
-      "Descárgalo para Windows y echa un vistazo de cerca a los archivos de los que no estás seguro.",
+      "Descárgalo y echa un vistazo de cerca a los archivos de los que no estás seguro.",
     seeWhat: "Mira lo que puede hacer",
   },
 };
@@ -241,7 +241,7 @@ export function Home() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:py-28">
           <div>
             <p className="inline-flex flex-wrap items-center gap-x-3 gap-y-1 rounded-full border border-line-2 bg-ink-2 px-3 py-1 text-xs text-zinc-400">
-              <span className="font-semibold text-sky-400">Windows x64</span>
+              <span className="font-semibold text-sky-400">Windows · macOS · Linux</span>
               <span aria-hidden="true">·</span>
               <span>
                 {t("common.version")}{" "}

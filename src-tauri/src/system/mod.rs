@@ -23,10 +23,68 @@ pub fn collect() -> Result<SystemInfo, String> {
         os_edition: os.edition().map(|e| e.to_string()),
         os_family: env::consts::FAMILY.to_string(),
         architecture: env::consts::ARCH.to_string(),
-        hostname: env::var("COMPUTERNAME").unwrap_or_else(|_| "unknown".into()),
-        username: env::var("USERNAME").unwrap_or_else(|_| "unknown".into()),
+        hostname: hostname(),
+        username: username(),
         cpu_physical_cores: System::physical_core_count().unwrap_or(0),
         cpu_virtual_cores: sys.cpus().len(),
         total_memory_bytes: sys.total_memory(),
     })
+}
+
+/// Nombre del equipo, multiplataforma.
+fn hostname() -> String {
+    #[cfg(target_os = "windows")]
+    {
+        env::var("COMPUTERNAME").unwrap_or_else(|_| hostname_fallback())
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        hostname_fallback()
+    }
+}
+
+/// Nombre de usuario, multiplataforma.
+fn username() -> String {
+    #[cfg(target_os = "windows")]
+    {
+        env::var("USERNAME").unwrap_or_else(|_| username_fallback())
+    }
+    #[cfg(target_os = "macos")]
+    {
+        env::var("USER").unwrap_or_else(|_| username_fallback())
+    }
+    #[cfg(target_os = "linux")]
+    {
+        env::var("USER").unwrap_or_else(|_| username_fallback())
+    }
+}
+
+/// Fallback: ejecuta `hostname` (Unix) o `echo %COMPUTERNAME%` (Windows).
+fn hostname_fallback() -> String {
+    std::process::Command::new("hostname")
+        .output()
+        .ok()
+        .and_then(|o| {
+            if o.status.success() {
+                Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| "unknown".into())
+}
+
+/// Fallback para usuario: ejecuta `whoami` en Unix.
+fn username_fallback() -> String {
+    std::process::Command::new("whoami")
+        .output()
+        .ok()
+        .and_then(|o| {
+            if o.status.success() {
+                Some(String::from_utf8_lossy(&o.stdout).trim().to_string())
+            } else {
+                None
+            }
+        })
+        .unwrap_or_else(|| "unknown".into())
 }

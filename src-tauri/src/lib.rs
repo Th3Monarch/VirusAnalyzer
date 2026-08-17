@@ -10,10 +10,14 @@
 mod analyzer;
 mod assessment;
 mod config;
+#[cfg(target_os = "windows")]
 mod contextmenu;
 mod hashing;
 mod models;
+mod platform;
+#[cfg(target_os = "windows")]
 mod powershell;
+#[cfg(target_os = "windows")]
 mod powershell_reference;
 mod quarantine;
 mod report;
@@ -66,6 +70,12 @@ fn get_app_info() -> AppInfo {
 #[tauri::command]
 fn get_system_info() -> Result<SystemInfo, String> {
     system::collect()
+}
+
+/// Plataforma actual de ejecución (windows | linux | macos).
+#[tauri::command]
+fn get_platform() -> platform::Platform {
+    platform::Platform::current()
 }
 
 /// Inspecciona una ruta (archivo o carpeta) para preparar un escaneo.
@@ -356,87 +366,85 @@ fn preview_report(
     report::render(&value, format)
 }
 
-// --- PowerShell (módulo separado del analizador) ----------------------------
+// --- Terminal multiplataforma -----------------------------------------------
 //
 // Este módulo SOLO se activa por petición explícita del usuario en su página.
-// El escáner de malware es estático y nunca invoca PowerShell.
+// El escáner de malware es estático y nunca invoca terminal.
 
-/// Ejecuta un comando en Windows PowerShell con los permisos del usuario.
+/// Ejecuta un comando en el shell del sistema con los permisos del usuario.
 ///
 /// `confirm` debe ser `true` para comandos de alto riesgo: el frontend muestra
-/// una confirmación explícita antes de pasarlo. No eleva privilegios ni usa
-/// `cmd.exe`.
+/// una confirmación explícita antes de pasarlo. No eleva privilegios.
 #[tauri::command]
 async fn execute_powershell(
-    state: tauri::State<'_, Arc<powershell::PowerShellManager>>,
+    state: tauri::State<'_, Arc<dyn platform::TerminalManager>>,
     command: String,
     confirm: Option<bool>,
-) -> Result<powershell::PowerShellResult, String> {
+) -> Result<platform::TerminalResult, String> {
     let trimmed = command.trim();
     if trimmed.is_empty() {
         return Err("El comando está vacío".into());
     }
-    if trimmed.len() > powershell::MAX_COMMAND_LEN {
+    if trimmed.len() > platform::terminal::MAX_COMMAND_LEN {
         return Err("El comando es demasiado largo".into());
     }
-    let risk = powershell_reference::risk_for(trimmed);
-    if risk == powershell_reference::RiskLevel::High && confirm != Some(true) {
+    let risk = state.classify(trimmed);
+    if risk == platform::RiskLevel::High && confirm != Some(true) {
         return Err(
             "Comando de alto riesgo: requiere confirmación explícita desde la interfaz".into(),
         );
     }
     let owned = trimmed.to_string();
-    let manager = state.inner().clone();
+    let terminal = state.inner().clone();
     let result = tauri::async_runtime::spawn_blocking(move || {
-        powershell::execute(&manager, &owned, powershell::DEFAULT_TIMEOUT_MS)
+        terminal.execute(&owned, platform::terminal::DEFAULT_TIMEOUT_MS)
     })
     .await
-    .map_err(|e| format!("Error interno al ejecutar PowerShell: {e}"))??;
+    .map_err(|e| format!("Error interno al ejecutar terminal: {e}"))??;
     Ok(result)
 }
 
-/// Cancela la ejecución de PowerShell en curso (si la hay).
+/// Cancela la ejecución del terminal en curso (si la hay).
 #[tauri::command]
 fn cancel_powershell(
-    state: tauri::State<'_, Arc<powershell::PowerShellManager>>,
+    state: tauri::State<'_, Arc<dyn platform::TerminalManager>>,
 ) -> Result<bool, String> {
-    Ok(powershell::cancel(state.inner()))
+    Ok(state.cancel())
 }
 
-/// Clasificación educativa del riesgo de un comando PowerShell.
+/// Clasificación educativa del riesgo de un comando.
 #[tauri::command]
-fn classify_powershell_command(command: String) -> powershell_reference::RiskLevel {
-    powershell_reference::risk_for(&command)
+fn classify_powershell_command(command: String) -> platform::RiskLevel {
+    platform::current_terminal().classify(&command)
 }
 
-/// Catálogo educativo de comandos PowerShell, traducido al idioma indicado.
+/// Catálogo educativo de comandos, traducido al idioma indicado.
 #[tauri::command]
-fn get_powershell_reference(language: String) -> Vec<powershell_reference::PsCommandInfo> {
+fn get_powershell_reference(language: String) -> Vec<platform::TerminalCommandInfo> {
     let lang = models::Language::from_config(&language);
-    powershell_reference::catalog(lang)
+    platform::current_terminal().get_reference(lang)
 }
 
-// --- Menú contextual de Windows ----------------------------------------------
+// --- Menú contextual -------------------------------------------------------
 
-/// Registra «Analizar con VirusAnalyzer» en el menú contextual del Explorador
-/// (solo para el usuario actual).
+/// Registra el menú contextual (solo para el usuario actual).
 #[tauri::command]
 fn install_context_menu(label: String) -> Result<bool, String> {
-    contextmenu::install(&label)?;
+    platform::current_context_menu().install(&label)?;
     Ok(true)
 }
 
 /// Elimina la entrada del menú contextual.
 #[tauri::command]
 fn uninstall_context_menu() -> Result<bool, String> {
-    contextmenu::uninstall()?;
+    platform::current_context_menu().uninstall()?;
     Ok(true)
 }
 
 /// Comprueba si el menú contextual está registrado.
 #[tauri::command]
 fn is_context_menu_installed() -> Result<bool, String> {
-    contextmenu::is_installed()
+    platform::current_context_menu().is_installed()
 }
 
 /// Devuelve (una sola vez) la ruta con la que se lanzó la aplicación desde el
@@ -457,7 +465,8 @@ pub fn run() {
             let dir = app.path().app_config_dir()?;
             let store = scanner::history::ScanStore::load(dir.join(scanner::history::HISTORY_FILE));
             app.manage(Arc::new(Mutex::new(store)));
-            app.manage(Arc::new(powershell::PowerShellManager::default()));
+            // Terminal multiplataforma (reemplaza PowerShellManager).
+            app.manage(platform::current_terminal());
             // Ruta recibida al lanzarse desde el menú contextual (se consume
             // una sola vez con `take_launch_path`).
             app.manage(Arc::new(Mutex::new(std::env::args().nth(1))));
@@ -467,6 +476,7 @@ pub fn run() {
             get_config,
             save_config,
             get_app_info,
+            get_platform,
             get_system_info,
             get_path_info,
             scan_path,
