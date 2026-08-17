@@ -15,9 +15,11 @@ use super::terminal::{RiskLevel, TerminalCommandInfo, TerminalManager, TerminalR
 use super::ContextMenuProvider;
 
 /// Timeout por defecto (30 s), idéntico al de Windows.
+#[allow(dead_code)]
 const DEFAULT_TIMEOUT_MS: u64 = 30_000;
 
 /// Límite de longitud del comando.
+#[allow(dead_code)]
 const MAX_COMMAND_LEN: usize = 64 * 1024;
 
 /// Shell de fallback cuando `$SHELL` no está definido.
@@ -248,7 +250,7 @@ fn classify_shell_command(raw: &str) -> RiskLevel {
         .filter(|t| !t.is_empty())
         .collect();
 
-    let has = |t: &str| tokens.iter().any(|tok| *tok == t);
+    let has = |t: &str| tokens.contains(&t);
 
     // Comandos de alto riesgo: destrucción, permisos, red, disco
     let high_tokens = [
