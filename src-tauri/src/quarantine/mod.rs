@@ -59,8 +59,7 @@ fn save_manifest(dir: &Path, entries: &[QuarantineEntry]) -> Result<(), String> 
     let target = manifest_path(dir);
     let tmp = dir.join(format!("{MANIFEST_FILE}.tmp"));
     fs::write(&tmp, raw).map_err(|e| format!("No se pudo escribir el manifiesto: {e}"))?;
-    fs::rename(&tmp, &target)
-        .map_err(|e| format!("No se pudo actualizar el manifiesto: {e}"))
+    fs::rename(&tmp, &target).map_err(|e| format!("No se pudo actualizar el manifiesto: {e}"))
 }
 
 fn next_id(dir: &Path) -> String {
@@ -68,7 +67,10 @@ fn next_id(dir: &Path) -> String {
     let prefix = format!("Q-{year}-");
     let max: u32 = load_manifest(dir)
         .iter()
-        .filter_map(|e| e.id.strip_prefix(&prefix).and_then(|s| s.parse::<u32>().ok()))
+        .filter_map(|e| {
+            e.id.strip_prefix(&prefix)
+                .and_then(|s| s.parse::<u32>().ok())
+        })
         .max()
         .unwrap_or(0);
     format!("{prefix}{:06}", max + 1)
@@ -137,7 +139,10 @@ fn restore_from_dir(dir: &Path, id: &str) -> Result<QuarantineEntry, String> {
     let entry = entries[idx].clone();
     let blob = PathBuf::from(&entry.quarantined_path);
     if !blob.exists() {
-        return Err(format!("El archivo aislado ya no existe: {}", blob.display()));
+        return Err(format!(
+            "El archivo aislado ya no existe: {}",
+            blob.display()
+        ));
     }
     let target = PathBuf::from(&entry.original_path);
     if target.exists() {
@@ -244,13 +249,22 @@ mod tests {
         .expect("aislar");
         assert_eq!(e.original_name, "sample.txt");
         assert!(!source.exists(), "el original debe haber sido movido");
-        assert!(PathBuf::from(&e.quarantined_path).exists(), "el blob existe");
+        assert!(
+            PathBuf::from(&e.quarantined_path).exists(),
+            "el blob existe"
+        );
 
         let restored = restore_from_dir(&quarantine, &e.id).expect("restaurar");
         assert_eq!(restored.original_name, "sample.txt");
         assert!(source.exists(), "el archivo vuelve a su ruta original");
-        assert!(!PathBuf::from(&e.quarantined_path).exists(), "el blob desaparece");
-        assert!(list_from_dir(&quarantine).is_empty(), "el manifiesto queda vacío");
+        assert!(
+            !PathBuf::from(&e.quarantined_path).exists(),
+            "el blob desaparece"
+        );
+        assert!(
+            list_from_dir(&quarantine).is_empty(),
+            "el manifiesto queda vacío"
+        );
         fs::remove_dir_all(&tmp).ok();
     }
 
@@ -268,7 +282,10 @@ mod tests {
         fs::write(&source, b"another file").expect("recrear");
         let err = restore_from_dir(&quarantine, &e.id).expect_err("debe rechazar");
         assert!(err.contains("ya existe"), "no sobrescribir: {err}");
-        assert!(PathBuf::from(&e.quarantined_path).exists(), "el blob se conserva");
+        assert!(
+            PathBuf::from(&e.quarantined_path).exists(),
+            "el blob se conserva"
+        );
         fs::remove_dir_all(&tmp).ok();
     }
 
@@ -278,8 +295,13 @@ mod tests {
         let quarantine = tmp.join("quarantine");
         let source = tmp.join("bad.exe");
         fs::write(&source, b"MZ fake").expect("escribir");
-        let e = quarantine_to_dir(&quarantine, &source.to_string_lossy(), ThreatLevel::Critical, None)
-            .expect("aislar");
+        let e = quarantine_to_dir(
+            &quarantine,
+            &source.to_string_lossy(),
+            ThreatLevel::Critical,
+            None,
+        )
+        .expect("aislar");
         delete_from_dir(&quarantine, &e.id).expect("eliminar");
         assert!(!PathBuf::from(&e.quarantined_path).exists());
         assert!(list_from_dir(&quarantine).is_empty());
@@ -289,8 +311,15 @@ mod tests {
     #[test]
     fn next_id_increments() {
         let dir = tmp_dir("nextid");
-        save_manifest(&dir, &[entry("Q-2026-000001"), entry("Q-2026-000007"), entry("Q-2026-000003")])
-            .expect("manifest");
+        save_manifest(
+            &dir,
+            &[
+                entry("Q-2026-000001"),
+                entry("Q-2026-000007"),
+                entry("Q-2026-000003"),
+            ],
+        )
+        .expect("manifest");
         assert_eq!(next_id(&dir), "Q-2026-000008");
         fs::remove_dir_all(&dir).ok();
     }

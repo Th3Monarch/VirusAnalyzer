@@ -87,17 +87,31 @@ pub fn file_scan(ctx: &ScanContext, path: &Path) -> Result<ScanResult, String> {
     }];
 
     let prefs = &ctx.preferences;
-    let hashes = hashing::compute(path, prefs.compute_md5, prefs.compute_sha1, prefs.compute_sha256)
-        .map_err(|e| format!("Error de lectura de {}: {e}", path.display()))?;
+    let hashes = hashing::compute(
+        path,
+        prefs.compute_md5,
+        prefs.compute_sha1,
+        prefs.compute_sha256,
+    )
+    .map_err(|e| format!("Error de lectura de {}: {e}", path.display()))?;
 
     if prefs.compute_md5 {
-        timeline.push(TimelineEntry { time: time_label(), label: "MD5 calculated".into() });
+        timeline.push(TimelineEntry {
+            time: time_label(),
+            label: "MD5 calculated".into(),
+        });
     }
     if prefs.compute_sha1 {
-        timeline.push(TimelineEntry { time: time_label(), label: "SHA-1 calculated".into() });
+        timeline.push(TimelineEntry {
+            time: time_label(),
+            label: "SHA-1 calculated".into(),
+        });
     }
     if prefs.compute_sha256 {
-        timeline.push(TimelineEntry { time: time_label(), label: "SHA-256 calculated".into() });
+        timeline.push(TimelineEntry {
+            time: time_label(),
+            label: "SHA-256 calculated".into(),
+        });
     }
 
     let static_analysis = match crate::analyzer::analyze(path) {
@@ -107,7 +121,10 @@ pub fn file_scan(ctx: &ScanContext, path: &Path) -> Result<ScanResult, String> {
                 label: format!("File type identified: {}", analysis.file_type),
             });
             if analysis.is_pe {
-                timeline.push(TimelineEntry { time: time_label(), label: "PE structure analyzed".into() });
+                timeline.push(TimelineEntry {
+                    time: time_label(),
+                    label: "PE structure analyzed".into(),
+                });
             }
             if analysis.pe.as_ref().is_some_and(|pe| pe.has_certificate) {
                 timeline.push(TimelineEntry {
@@ -118,7 +135,10 @@ pub fn file_scan(ctx: &ScanContext, path: &Path) -> Result<ScanResult, String> {
             Some(analysis)
         }
         Err(_) => {
-            timeline.push(TimelineEntry { time: time_label(), label: "Static analysis failed".into() });
+            timeline.push(TimelineEntry {
+                time: time_label(),
+                label: "Static analysis failed".into(),
+            });
             None
         }
     };
@@ -200,9 +220,15 @@ pub fn file_scan(ctx: &ScanContext, path: &Path) -> Result<ScanResult, String> {
         reputation.as_ref(),
         ctx.language,
     );
-    timeline.push(TimelineEntry { time: time_label(), label: "Assessment generated".into() });
+    timeline.push(TimelineEntry {
+        time: time_label(),
+        label: "Assessment generated".into(),
+    });
 
-    timeline.push(TimelineEntry { time: time_label(), label: "Scan completed".into() });
+    timeline.push(TimelineEntry {
+        time: time_label(),
+        label: "Scan completed".into(),
+    });
 
     Ok(ScanResult {
         id: Uuid::new_v4().to_string(),
@@ -230,8 +256,8 @@ pub fn count_files(ctx: &ScanContext, dir: &Path) -> Result<usize, String> {
 }
 
 fn count_walk(ctx: &ScanContext, dir: &Path, count: &mut usize) -> Result<(), String> {
-    let read_dir = std::fs::read_dir(dir)
-        .map_err(|e| format!("No se pudo leer {}: {e}", dir.display()))?;
+    let read_dir =
+        std::fs::read_dir(dir).map_err(|e| format!("No se pudo leer {}: {e}", dir.display()))?;
     for entry in read_dir {
         if ctx.is_cancelled() {
             return Ok(());
@@ -317,8 +343,8 @@ fn walk(
     total_bytes: &mut u64,
     max_bytes: u64,
 ) -> Result<(), String> {
-    let read_dir = std::fs::read_dir(dir)
-        .map_err(|e| format!("No se pudo leer {}: {e}", dir.display()))?;
+    let read_dir =
+        std::fs::read_dir(dir).map_err(|e| format!("No se pudo leer {}: {e}", dir.display()))?;
     for entry in read_dir {
         if ctx.is_cancelled() {
             return Ok(());
@@ -335,7 +361,16 @@ fn walk(
 
         if file_type.is_dir() {
             walk(
-                ctx, base, &path, total, on_file, files, scanned, skipped, errors, total_bytes,
+                ctx,
+                base,
+                &path,
+                total,
+                on_file,
+                files,
+                scanned,
+                skipped,
+                errors,
+                total_bytes,
                 max_bytes,
             )?;
             continue;
@@ -359,7 +394,10 @@ fn walk(
                 relative_path: relative,
                 size,
                 hashes: FileHashes::default(),
-                error: Some(format!("Supera el límite de {} MB", ctx.preferences.max_file_size_mb)),
+                error: Some(format!(
+                    "Supera el límite de {} MB",
+                    ctx.preferences.max_file_size_mb
+                )),
             });
             continue;
         }

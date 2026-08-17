@@ -55,8 +55,8 @@ pub fn scan(data: &[u8]) -> Vec<String> {
 
 /// Lee el prefijo del archivo y escanea las palabras clave.
 pub fn scan_prefix(path: &Path) -> Result<Vec<String>, String> {
-    let mut file = File::open(path)
-        .map_err(|e| format!("No se pudo abrir {}: {e}", path.display()))?;
+    let mut file =
+        File::open(path).map_err(|e| format!("No se pudo abrir {}: {e}", path.display()))?;
     let mut buf = vec![0u8; PREFIX_BYTES];
     let n = file
         .read(&mut buf)

@@ -90,18 +90,39 @@ fn parse_ok(json: &Value, hash: &str) -> Result<VirusTotalResult, String> {
         + result.timeout
         + result.type_unsupported;
 
-    result.reputation = attrs.get("reputation").and_then(|v| v.as_i64()).unwrap_or(0) as i32;
-    result.times_submitted = attrs.get("times_submitted").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+    result.reputation = attrs
+        .get("reputation")
+        .and_then(|v| v.as_i64())
+        .unwrap_or(0) as i32;
+    result.times_submitted = attrs
+        .get("times_submitted")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as u32;
     result.first_submission_iso = epoch_iso(attrs.get("first_submission_date"));
     result.last_analysis_iso = epoch_iso(attrs.get("last_analysis_date"));
-    result.meaningful_name = attrs.get("meaningful_name").and_then(|v| v.as_str()).map(String::from);
-    result.magic = attrs.get("magic").and_then(|v| v.as_str()).map(String::from);
+    result.meaningful_name = attrs
+        .get("meaningful_name")
+        .and_then(|v| v.as_str())
+        .map(String::from);
+    result.magic = attrs
+        .get("magic")
+        .and_then(|v| v.as_str())
+        .map(String::from);
     result.size = attrs.get("size").and_then(|v| v.as_u64());
 
-    if let Some(engine_results) = attrs.get("last_analysis_results").and_then(|r| r.as_object()) {
+    if let Some(engine_results) = attrs
+        .get("last_analysis_results")
+        .and_then(|r| r.as_object())
+    {
         for (engine, entry) in engine_results {
-            let Some(obj) = entry.as_object() else { continue; };
-            let category = obj.get("category").and_then(|c| c.as_str()).unwrap_or("").to_string();
+            let Some(obj) = entry.as_object() else {
+                continue;
+            };
+            let category = obj
+                .get("category")
+                .and_then(|c| c.as_str())
+                .unwrap_or("")
+                .to_string();
             let res = obj.get("result").and_then(|r| r.as_str()).map(String::from);
             if matches!(category.as_str(), "malicious" | "suspicious") {
                 if let Some(r) = &res {
@@ -178,7 +199,10 @@ mod tests {
         assert_eq!(r.vendors.len(), 3);
         assert_eq!(r.vendors[0].engine, "AV-Example");
         assert_eq!(r.vendors[1].engine, "SuspEngine");
-        assert_eq!(r.permalink, "https://www.virustotal.com/gui/file/abc/detection");
+        assert_eq!(
+            r.permalink,
+            "https://www.virustotal.com/gui/file/abc/detection"
+        );
     }
 
     #[test]

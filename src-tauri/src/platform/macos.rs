@@ -243,12 +243,32 @@ fn classify_shell_command(raw: &str) -> RiskLevel {
     let has = |t: &str| tokens.iter().any(|tok| *tok == t);
 
     let high_tokens = [
-        "rm", "mkfs", "dd", "format", "shred", "fdisk",
-        "chmod", "chown", "chgrp", "sudo", "su",
-        "reboot", "shutdown", "halt", "launchctl",
-        "mount", "umount", "pfctl", "iptables",
-        "crontab", "at", "dscl", "diskutil",
-        "defaults", "brew", "pip",
+        "rm",
+        "mkfs",
+        "dd",
+        "format",
+        "shred",
+        "fdisk",
+        "chmod",
+        "chown",
+        "chgrp",
+        "sudo",
+        "su",
+        "reboot",
+        "shutdown",
+        "halt",
+        "launchctl",
+        "mount",
+        "umount",
+        "pfctl",
+        "iptables",
+        "crontab",
+        "at",
+        "dscl",
+        "diskutil",
+        "defaults",
+        "brew",
+        "pip",
     ];
     for t in &high_tokens {
         if has(t) {
@@ -256,9 +276,7 @@ fn classify_shell_command(raw: &str) -> RiskLevel {
         }
     }
 
-    let has_pair = |a: &str, b: &str| {
-        tokens.windows(2).any(|w| w[0] == a && w[1] == b)
-    };
+    let has_pair = |a: &str, b: &str| tokens.windows(2).any(|w| w[0] == a && w[1] == b);
     if has_pair("rm", "-rf")
         || has_pair("rm", "-fr")
         || has_pair("sudo", "rm")
@@ -269,10 +287,23 @@ fn classify_shell_command(raw: &str) -> RiskLevel {
     }
 
     let medium_tokens = [
-        "kill", "pkill", "killall", "launchctl",
-        "brew", "npm", "node", "python",
-        "tar", "zip", "unzip", "cp", "mv", "ln",
-        "ifconfig", "networksetup", "scutil",
+        "kill",
+        "pkill",
+        "killall",
+        "launchctl",
+        "brew",
+        "npm",
+        "node",
+        "python",
+        "tar",
+        "zip",
+        "unzip",
+        "cp",
+        "mv",
+        "ln",
+        "ifconfig",
+        "networksetup",
+        "scutil",
     ];
     for t in &medium_tokens {
         if has(t) {

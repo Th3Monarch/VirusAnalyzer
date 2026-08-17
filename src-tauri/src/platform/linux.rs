@@ -252,13 +252,42 @@ fn classify_shell_command(raw: &str) -> RiskLevel {
 
     // Comandos de alto riesgo: destrucción, permisos, red, disco
     let high_tokens = [
-        "rm", "mkfs", "dd", "format", "shred", "wipefs", "fdisk",
-        "parted", "chmod", "chown", "chgrp", "sudo", "su",
-        "reboot", "shutdown", "halt", "init", "systemctl",
-        "mount", "umount", "iptables", "ip6tables", "nft",
-        "crontab", "at", "useradd", "userdel", "usermod",
-        "groupadd", "groupdel", "passwd", "visudo",
-        "wget", "curl", "> /dev/", "dd if=",
+        "rm",
+        "mkfs",
+        "dd",
+        "format",
+        "shred",
+        "wipefs",
+        "fdisk",
+        "parted",
+        "chmod",
+        "chown",
+        "chgrp",
+        "sudo",
+        "su",
+        "reboot",
+        "shutdown",
+        "halt",
+        "init",
+        "systemctl",
+        "mount",
+        "umount",
+        "iptables",
+        "ip6tables",
+        "nft",
+        "crontab",
+        "at",
+        "useradd",
+        "userdel",
+        "usermod",
+        "groupadd",
+        "groupdel",
+        "passwd",
+        "visudo",
+        "wget",
+        "curl",
+        "> /dev/",
+        "dd if=",
     ];
     for t in &high_tokens {
         if has(t) {
@@ -267,9 +296,7 @@ fn classify_shell_command(raw: &str) -> RiskLevel {
     }
 
     // Combinaciones de alto riesgo: rm -rf, sudo rm, etc.
-    let has_pair = |a: &str, b: &str| {
-        tokens.windows(2).any(|w| w[0] == a && w[1] == b)
-    };
+    let has_pair = |a: &str, b: &str| tokens.windows(2).any(|w| w[0] == a && w[1] == b);
     if has_pair("rm", "-rf")
         || has_pair("rm", "-fr")
         || has_pair("sudo", "rm")
@@ -281,11 +308,31 @@ fn classify_shell_command(raw: &str) -> RiskLevel {
 
     // Riesgo medio: modificación de estado del sistema
     let medium_tokens = [
-        "kill", "pkill", "killall", "service", "systemctl",
-        "apt", "apt-get", "yum", "dnf", "pacman", "zypper",
-        "pip", "npm", "node", "python",
-        "tar", "zip", "unzip", "cp", "mv", "ln",
-        "ifconfig", "ip", "nmcli", "rfkill",
+        "kill",
+        "pkill",
+        "killall",
+        "service",
+        "systemctl",
+        "apt",
+        "apt-get",
+        "yum",
+        "dnf",
+        "pacman",
+        "zypper",
+        "pip",
+        "npm",
+        "node",
+        "python",
+        "tar",
+        "zip",
+        "unzip",
+        "cp",
+        "mv",
+        "ln",
+        "ifconfig",
+        "ip",
+        "nmcli",
+        "rfkill",
     ];
     for t in &medium_tokens {
         if has(t) {

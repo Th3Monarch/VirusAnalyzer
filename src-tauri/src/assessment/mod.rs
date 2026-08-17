@@ -15,7 +15,9 @@
 //! frontend. Al finalizar se valida la lengua de la salida con una heurística
 //! ligera y se registra cualquier desviación.
 
-use crate::models::{AiAssessment, Finding, Language, StaticAnalysis, ThreatLevel, VirusTotalResult};
+use crate::models::{
+    AiAssessment, Finding, Language, StaticAnalysis, ThreatLevel, VirusTotalResult,
+};
 
 pub const VERDICT_CLEAN: &str = "clean";
 pub const VERDICT_LIKELY_CLEAN: &str = "likely_clean";
@@ -297,7 +299,11 @@ const ES: Lang = Lang {
 };
 
 fn cat_for(language: Language) -> &'static Lang {
-    if language == Language::Es { &ES } else { &EN }
+    if language == Language::Es {
+        &ES
+    } else {
+        &EN
+    }
 }
 
 /// Construye la evaluación a partir de la evidencia del escaneo, compuesta
@@ -355,7 +361,14 @@ pub fn build(
         guidance(cat, findings);
     let key_categories = key_categories(findings);
     let summary = summary(cat, file_name, verdict, threat_score, findings, reputation);
-    let explanation = explanation(cat, language, file_name, static_analysis, reputation, findings);
+    let explanation = explanation(
+        cat,
+        language,
+        file_name,
+        static_analysis,
+        reputation,
+        findings,
+    );
 
     let assessment = AiAssessment {
         verdict: verdict.to_string(),
@@ -488,13 +501,12 @@ fn summary(
     };
     match verdict {
         VERDICT_CLEAN => fill(cat.sum_clean, &[("{file}", file_name)]) + &vt_note,
-        VERDICT_LIKELY_CLEAN => fill(
-            cat.sum_likely_clean,
-            &[
-                ("{file}", file_name),
-                ("{n}", &findings.len().to_string()),
-            ],
-        ) + &vt_note,
+        VERDICT_LIKELY_CLEAN => {
+            fill(
+                cat.sum_likely_clean,
+                &[("{file}", file_name), ("{n}", &findings.len().to_string())],
+            ) + &vt_note
+        }
         VERDICT_SUSPICIOUS => {
             let cats = key_categories(findings);
             fill(
@@ -508,7 +520,11 @@ fn summary(
             ) + &vt_note
         }
         _ => {
-            let tops: Vec<String> = findings.iter().take(3).map(|f| f.rule_name.clone()).collect();
+            let tops: Vec<String> = findings
+                .iter()
+                .take(3)
+                .map(|f| f.rule_name.clone())
+                .collect();
             fill(
                 cat.sum_malicious,
                 &[
@@ -542,7 +558,11 @@ fn explanation(
             ],
         ));
         if let Some(pe) = &a.pe {
-            let kind = if pe.is_dll { cat.exp_pe_dll } else { cat.exp_pe_exec };
+            let kind = if pe.is_dll {
+                cat.exp_pe_dll
+            } else {
+                cat.exp_pe_exec
+            };
             baseline.push_str(&fill(
                 cat.exp_pe_kind,
                 &[
@@ -588,7 +608,8 @@ fn explanation(
         "general",
     ];
     for cat_key in order {
-        let cat_findings: Vec<&Finding> = findings.iter().filter(|f| f.category == cat_key).collect();
+        let cat_findings: Vec<&Finding> =
+            findings.iter().filter(|f| f.category == cat_key).collect();
         if cat_findings.is_empty() {
             continue;
         }
@@ -672,7 +693,12 @@ fn guidance(
     if impact.is_empty() {
         impact.push(cat.guid_no_impact.to_string());
     }
-    (dedup(impact), dedup(consequences), dedup(actions), dedup(vectors))
+    (
+        dedup(impact),
+        dedup(consequences),
+        dedup(actions),
+        dedup(vectors),
+    )
 }
 
 /// Categorías con más peso (por puntos), top 3, como claves `rules.category.*`.
@@ -713,7 +739,15 @@ mod tests {
 
     #[test]
     fn clean_file_yields_clean_verdict() {
-        let a = build("test.txt", ThreatLevel::Clean, 0, &[], None, None, Language::En);
+        let a = build(
+            "test.txt",
+            ThreatLevel::Clean,
+            0,
+            &[],
+            None,
+            None,
+            Language::En,
+        );
         assert_eq!(a.verdict, VERDICT_CLEAN);
         assert!(a.indicators.is_empty());
         assert!(a.summary.contains("no suspicious indicators"));
@@ -723,15 +757,34 @@ mod tests {
     #[test]
     fn strong_findings_yield_malicious_verdict() {
         let findings = vec![
-            finding("process", 25, Severity::Critical, "Process injection imports"),
+            finding(
+                "process",
+                25,
+                Severity::Critical,
+                "Process injection imports",
+            ),
             finding("persistence", 6, Severity::Medium, "Registry persistence"),
         ];
-        let a = build("evil.exe", ThreatLevel::High, 40, &findings, None, None, Language::En);
+        let a = build(
+            "evil.exe",
+            ThreatLevel::High,
+            40,
+            &findings,
+            None,
+            None,
+            Language::En,
+        );
         assert_eq!(a.verdict, VERDICT_MALICIOUS);
         assert!(a.confidence >= 0.8);
         assert!(!a.indicators.is_empty());
-        assert!(a.potential_impact.iter().any(|s| s.contains("another process")));
-        assert!(a.recommended_actions.iter().any(|s| s.contains("quarantine")));
+        assert!(a
+            .potential_impact
+            .iter()
+            .any(|s| s.contains("another process")));
+        assert!(a
+            .recommended_actions
+            .iter()
+            .any(|s| s.contains("quarantine")));
         assert!(a.key_categories.first() == Some(&"process".to_string()));
         assert!(a.explanation.contains("Process behavior"));
     }
@@ -744,9 +797,30 @@ mod tests {
             total: 60,
             ..Default::default()
         };
-        let findings = vec![finding("process", 25, Severity::Critical, "Process injection imports")];
-        let with = build("a.exe", ThreatLevel::High, 40, &findings, None, Some(&vt), Language::En);
-        let without = build("a.exe", ThreatLevel::High, 40, &findings, None, None, Language::En);
+        let findings = vec![finding(
+            "process",
+            25,
+            Severity::Critical,
+            "Process injection imports",
+        )];
+        let with = build(
+            "a.exe",
+            ThreatLevel::High,
+            40,
+            &findings,
+            None,
+            Some(&vt),
+            Language::En,
+        );
+        let without = build(
+            "a.exe",
+            ThreatLevel::High,
+            40,
+            &findings,
+            None,
+            None,
+            Language::En,
+        );
         assert!(with.confidence > without.confidence);
         assert!(with.indicators.len() == 1, "solo los hallazgos locales");
     }
@@ -759,7 +833,15 @@ mod tests {
             total: 60,
             ..Default::default()
         };
-        let a = build("x.bin", ThreatLevel::Low, 10, &[], None, Some(&vt), Language::En);
+        let a = build(
+            "x.bin",
+            ThreatLevel::Low,
+            10,
+            &[],
+            None,
+            Some(&vt),
+            Language::En,
+        );
         assert_eq!(a.verdict, VERDICT_MALICIOUS);
         assert!(a.indicators.iter().any(|s| s.contains("flagged")));
     }
@@ -767,17 +849,48 @@ mod tests {
     #[test]
     fn es_output_is_spanish() {
         let findings = vec![
-            finding("process", 25, Severity::Critical, "Process injection imports"),
+            finding(
+                "process",
+                25,
+                Severity::Critical,
+                "Process injection imports",
+            ),
             finding("persistence", 6, Severity::Medium, "Registry persistence"),
         ];
-        let a = build("evil.exe", ThreatLevel::High, 40, &findings, None, None, Language::Es);
+        let a = build(
+            "evil.exe",
+            ThreatLevel::High,
+            40,
+            &findings,
+            None,
+            None,
+            Language::Es,
+        );
         assert_eq!(a.verdict, VERDICT_MALICIOUS);
-        assert!(a.summary.contains("presenta indicadores"), "resumen en español");
-        assert!(a.explanation.contains("análisis estático"), "explicación en español");
-        assert!(a.explanation.contains("Comportamiento de procesos"), "título de categoría en español");
-        assert!(a.explanation.contains("inyección de procesos"), "descripción de regla en español");
-        assert!(a.potential_impact.iter().any(|s| s.contains("otro proceso")));
-        assert!(a.recommended_actions.iter().any(|s| s.contains("cuarentena")));
+        assert!(
+            a.summary.contains("presenta indicadores"),
+            "resumen en español"
+        );
+        assert!(
+            a.explanation.contains("análisis estático"),
+            "explicación en español"
+        );
+        assert!(
+            a.explanation.contains("Comportamiento de procesos"),
+            "título de categoría en español"
+        );
+        assert!(
+            a.explanation.contains("inyección de procesos"),
+            "descripción de regla en español"
+        );
+        assert!(a
+            .potential_impact
+            .iter()
+            .any(|s| s.contains("otro proceso")));
+        assert!(a
+            .recommended_actions
+            .iter()
+            .any(|s| s.contains("cuarentena")));
         assert!(
             !a.summary.to_lowercase().contains("the file"),
             "sin texto en inglés"
@@ -790,8 +903,21 @@ mod tests {
 
     #[test]
     fn en_output_is_english() {
-        let findings = vec![finding("process", 25, Severity::Critical, "Process injection imports")];
-        let a = build("evil.exe", ThreatLevel::High, 40, &findings, None, None, Language::En);
+        let findings = vec![finding(
+            "process",
+            25,
+            Severity::Critical,
+            "Process injection imports",
+        )];
+        let a = build(
+            "evil.exe",
+            ThreatLevel::High,
+            40,
+            &findings,
+            None,
+            None,
+            Language::En,
+        );
         assert!(a.summary.contains("exhibits strong malware indicators"));
         assert!(a.explanation.contains("static analysis"));
         assert!(!a.explanation.contains("análisis estático"));
@@ -799,15 +925,25 @@ mod tests {
 
     #[test]
     fn es_clean_output_is_spanish() {
-        let a = build("test.txt", ThreatLevel::Clean, 0, &[], None, None, Language::Es);
-        assert_eq!(a.verdict, VERDICT_CLEAN);
-        assert!(a.summary.contains("no mostró indicadores"), "resumen limpio en español");
-        assert!(a.explanation.contains("análisis estático"));
-        assert!(
-            a.recommended_actions
-                .iter()
-                .any(|s| s.contains("no se requiere ninguna acción"))
+        let a = build(
+            "test.txt",
+            ThreatLevel::Clean,
+            0,
+            &[],
+            None,
+            None,
+            Language::Es,
         );
+        assert_eq!(a.verdict, VERDICT_CLEAN);
+        assert!(
+            a.summary.contains("no mostró indicadores"),
+            "resumen limpio en español"
+        );
+        assert!(a.explanation.contains("análisis estático"));
+        assert!(a
+            .recommended_actions
+            .iter()
+            .any(|s| s.contains("no se requiere ninguna acción")));
     }
 
     #[test]

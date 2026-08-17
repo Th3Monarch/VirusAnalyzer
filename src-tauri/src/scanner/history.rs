@@ -183,10 +183,8 @@ mod tests {
     }
 
     fn temp_file(tag: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!(
-            "va-history-test-{tag}-{}",
-            uuid::Uuid::new_v4()
-        ));
+        let dir =
+            std::env::temp_dir().join(format!("va-history-test-{tag}-{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&dir).unwrap();
         dir.join(HISTORY_FILE)
     }
@@ -201,7 +199,10 @@ mod tests {
 
         let reloaded = ScanStore::load(path.clone());
         assert_eq!(reloaded.history.len(), 1);
-        assert_eq!(reloaded.history[0].id, "abc", "el id se conserva tras recargar");
+        assert_eq!(
+            reloaded.history[0].id, "abc",
+            "el id se conserva tras recargar"
+        );
         let value = reloaded.results.get("abc").expect("resultado persistido");
         assert_eq!(value["id"], "abc");
         std::fs::remove_dir_all(path.parent().unwrap()).ok();
@@ -234,7 +235,10 @@ mod tests {
 
         // Segunda carga: el id ya persistido no se regenera.
         let second = ScanStore::load(path.clone());
-        assert_eq!(second.history[0].id, id1, "el id no se regenera en cada carga");
+        assert_eq!(
+            second.history[0].id, id1,
+            "el id no se regenera en cada carga"
+        );
         std::fs::remove_dir_all(path.parent().unwrap()).ok();
     }
 

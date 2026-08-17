@@ -350,7 +350,10 @@ mod tests {
         let started = Instant::now();
         let r = exec("Start-Sleep -Seconds 30", 800);
         assert!(r.timed_out, "debe marcarse el timeout");
-        assert!(started.elapsed() < Duration::from_secs(15), "no debe bloquear 30 s");
+        assert!(
+            started.elapsed() < Duration::from_secs(15),
+            "no debe bloquear 30 s"
+        );
     }
 
     #[test]
@@ -361,7 +364,10 @@ mod tests {
             execute(&runner, "Start-Sleep -Seconds 30", 60_000).expect("ejecución en marcha")
         });
         std::thread::sleep(Duration::from_millis(700));
-        assert!(cancel(&manager), "debe haber una ejecución activa que cancelar");
+        assert!(
+            cancel(&manager),
+            "debe haber una ejecución activa que cancelar"
+        );
         let r = handle.join().expect("el hilo debe terminar");
         assert!(r.cancelled, "la ejecución debe marcarse cancelada");
     }
@@ -373,7 +379,10 @@ mod tests {
         let handle = std::thread::spawn(move || execute(&runner, "Start-Sleep -Seconds 5", 30_000));
         std::thread::sleep(Duration::from_millis(400));
         let second = execute(&manager, "Get-Date", 5_000);
-        assert!(second.is_err(), "no debe permitirse una segunda ejecución simultánea");
+        assert!(
+            second.is_err(),
+            "no debe permitirse una segunda ejecución simultánea"
+        );
         cancel(&manager);
         let _ = handle.join();
     }

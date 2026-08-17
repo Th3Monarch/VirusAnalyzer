@@ -112,7 +112,9 @@ fn scan_path(
 
     {
         let mut guard = state.lock().map_err(|_| "Estado bloqueado".to_string())?;
-        guard.active = Some(ActiveScan { cancel: cancel.clone() });
+        guard.active = Some(ActiveScan {
+            cancel: cancel.clone(),
+        });
     }
 
     let config = ConfigManager::load(&app)
@@ -199,13 +201,19 @@ fn scan_path(
                     guard.active = None;
                     guard.save();
                 }
-                emit("scan-completed", json!({ "scanId": scan_id, "entry": entry }));
+                emit(
+                    "scan-completed",
+                    json!({ "scanId": scan_id, "entry": entry }),
+                );
             }
             Err(message) => {
                 if let Ok(mut guard) = store.lock() {
                     guard.active = None;
                 }
-                emit("scan-error", json!({ "scanId": scan_id, "message": message }));
+                emit(
+                    "scan-error",
+                    json!({ "scanId": scan_id, "message": message }),
+                );
             }
         }
     });
@@ -227,7 +235,9 @@ fn cancel_scan(state: tauri::State<'_, Arc<Mutex<ScanStore>>>) -> Result<bool, S
 
 /// Devuelve el historial de escaneos (resumen ligero).
 #[tauri::command]
-fn get_scan_history(state: tauri::State<'_, Arc<Mutex<ScanStore>>>) -> Result<Vec<models::ScanHistoryEntry>, String> {
+fn get_scan_history(
+    state: tauri::State<'_, Arc<Mutex<ScanStore>>>,
+) -> Result<Vec<models::ScanHistoryEntry>, String> {
     let guard = state.lock().map_err(|_| "Estado bloqueado".to_string())?;
     Ok(guard.history.clone())
 }
@@ -287,7 +297,9 @@ fn virustotal_lookup(
         .ok_or("No hay una API key de VirusTotal configurada")?;
     let hash = hash.trim().to_lowercase();
     if !matches!(hash.len(), 32 | 40 | 64) {
-        return Err("Hash inválido: se esperan 32 (MD5), 40 (SHA-1) o 64 (SHA-256) caracteres".into());
+        return Err(
+            "Hash inválido: se esperan 32 (MD5), 40 (SHA-1) o 64 (SHA-256) caracteres".into(),
+        );
     }
     virustotal::lookup(&key, &hash)
 }

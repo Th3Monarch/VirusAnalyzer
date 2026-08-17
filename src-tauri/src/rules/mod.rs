@@ -6,7 +6,9 @@
 //!
 //! Seguridad: el motor solo analiza datos ya extraídos; nunca ejecuta archivos.
 
-use crate::models::{FileHashes, Finding, Language, PeInfo, RuleInfo, Severity, StaticAnalysis, ThreatLevel};
+use crate::models::{
+    FileHashes, Finding, Language, PeInfo, RuleInfo, Severity, StaticAnalysis, ThreatLevel,
+};
 
 /// Tope del `threat_score` (0..100).
 pub const MAX_POINTS: u32 = 100;
@@ -283,7 +285,10 @@ const RULES: &[Rule] = &[
 ];
 
 fn rule(id: &str) -> &'static Rule {
-    RULES.iter().find(|r| r.id == id).unwrap_or_else(|| panic!("regla desconocida: {id}"))
+    RULES
+        .iter()
+        .find(|r| r.id == id)
+        .unwrap_or_else(|| panic!("regla desconocida: {id}"))
 }
 
 /// Descripciones en español de las reglas (clave: nombre de la regla).
@@ -355,7 +360,8 @@ fn finding(id: &str, evidence: Vec<String>) -> Finding {
 /// Normaliza un nombre de API quitando el sufijo ANSI/Unicode (A/W) y
 /// convirtiendo a minúsculas: `CreateRemoteThreadW` → `createremotethread`.
 fn norm_api(name: &str) -> String {
-    name.trim_end_matches(|c| c == 'A' || c == 'W').to_ascii_lowercase()
+    name.trim_end_matches(|c| c == 'A' || c == 'W')
+        .to_ascii_lowercase()
 }
 
 /// Funciones importadas que coinciden con alguna aguja (prefijo seguro).
@@ -407,13 +413,30 @@ pub fn evaluate(analysis: Option<&StaticAnalysis>, hashes: Option<&FileHashes>) 
     if let Some(pe) = pe {
         let names: Vec<String> = pe.sections.iter().map(|s| s.name.to_lowercase()).collect();
 
-        if names.iter().any(|n| n == "upx0" || n == "upx1" || n.starts_with("upx")) {
+        if names
+            .iter()
+            .any(|n| n == "upx0" || n == "upx1" || n.starts_with("upx"))
+        {
             out.push(finding("upx-packed", vec!["UPX0/UPX1 sections".into()]));
         }
 
         let packer_markers = [
-            "aspack", "petite", "mpress", "themida", "vmprotect", "vmp", "nsp", "svp", "rpcrypt",
-            "wpack", "sforce", "peshield", "enigma", "obsidium", "vprotect", "packed",
+            "aspack",
+            "petite",
+            "mpress",
+            "themida",
+            "vmprotect",
+            "vmp",
+            "nsp",
+            "svp",
+            "rpcrypt",
+            "wpack",
+            "sforce",
+            "peshield",
+            "enigma",
+            "obsidium",
+            "vprotect",
+            "packed",
         ];
         let packer_hits: Vec<String> = names
             .iter()
@@ -431,7 +454,10 @@ pub fn evaluate(analysis: Option<&StaticAnalysis>, hashes: Option<&FileHashes>) 
             .map(|s| s.entropy)
             .fold(0.0f64, f64::max);
         if text_entropy >= 7.0 {
-            out.push(finding("entropy-text", vec![format!(".text entropy {text_entropy:.2}")]));
+            out.push(finding(
+                "entropy-text",
+                vec![format!(".text entropy {text_entropy:.2}")],
+            ));
         }
 
         let wx: Vec<String> = pe
@@ -445,12 +471,18 @@ pub fn evaluate(analysis: Option<&StaticAnalysis>, hashes: Option<&FileHashes>) 
         }
 
         if pe.sections.len() > 40 {
-            out.push(finding("many-sections", vec![format!("{} sections", pe.sections.len())]));
+            out.push(finding(
+                "many-sections",
+                vec![format!("{} sections", pe.sections.len())],
+            ));
         }
     }
 
     if !a.is_pe && a.entropy >= 7.0 {
-        out.push(finding("entropy-script", vec![format!("entropy {:.2}", a.entropy)]));
+        out.push(finding(
+            "entropy-script",
+            vec![format!("entropy {:.2}", a.entropy)],
+        ));
     }
 
     // --- Process ---
@@ -504,7 +536,12 @@ pub fn evaluate(analysis: Option<&StaticAnalysis>, hashes: Option<&FileHashes>) 
 
         let enum_hits = import_matches(
             pe,
-            &["toolhelp32snapshot", "process32first", "process32next", "ntquerysysteminformation"],
+            &[
+                "toolhelp32snapshot",
+                "process32first",
+                "process32next",
+                "ntquerysysteminformation",
+            ],
         );
         if enum_hits.len() >= 2 {
             out.push(finding("process-enumeration", enum_hits));
@@ -546,7 +583,15 @@ pub fn evaluate(analysis: Option<&StaticAnalysis>, hashes: Option<&FileHashes>) 
 
     // --- PowerShell ---
     let has_ps = has_any_keyword(kw, &["powershell"]);
-    let dl_kw = keyword_hits(kw, &["downloadstring", "downloadfile", "invoke-webrequest", "invoke-expression"]);
+    let dl_kw = keyword_hits(
+        kw,
+        &[
+            "downloadstring",
+            "downloadfile",
+            "invoke-webrequest",
+            "invoke-expression",
+        ],
+    );
     if !a.is_pe && has_ps {
         out.push(finding("powershell-invocation", vec!["powershell".into()]));
     }
@@ -566,7 +611,12 @@ pub fn evaluate(analysis: Option<&StaticAnalysis>, hashes: Option<&FileHashes>) 
 
         let wh = import_matches(
             pe,
-            &["winhttpopen", "winhttpconnect", "winhttpsendrequest", "winhttpopenrequest"],
+            &[
+                "winhttpopen",
+                "winhttpconnect",
+                "winhttpsendrequest",
+                "winhttpopenrequest",
+            ],
         );
         if wh.len() >= 2 {
             out.push(finding("network-winhttp", wh));
@@ -577,11 +627,21 @@ pub fn evaluate(analysis: Option<&StaticAnalysis>, hashes: Option<&FileHashes>) 
             out.push(finding("network-wininet", wi));
         }
 
-        if pe.imports.iter().any(|d| d.name.to_lowercase().contains("ws2_32")) {
-            out.push(finding("network-socket", vec!["ws2_32.dll imported".into()]));
+        if pe
+            .imports
+            .iter()
+            .any(|d| d.name.to_lowercase().contains("ws2_32"))
+        {
+            out.push(finding(
+                "network-socket",
+                vec!["ws2_32.dll imported".into()],
+            ));
         }
 
-        let dns = import_matches(pe, &["gethostbyname", "getaddrinfo", "dnsquery", "inet_addr"]);
+        let dns = import_matches(
+            pe,
+            &["gethostbyname", "getaddrinfo", "dnsquery", "inet_addr"],
+        );
         if !dns.is_empty() {
             out.push(finding("network-dns", dns));
         }
@@ -632,7 +692,11 @@ fn severity_rank(s: Severity) -> u8 {
 
 /// Suma ponderada de los hallazgos, con tope en `MAX_POINTS`.
 pub fn score(findings: &[Finding]) -> u32 {
-    findings.iter().map(|f| f.points).sum::<u32>().min(MAX_POINTS)
+    findings
+        .iter()
+        .map(|f| f.points)
+        .sum::<u32>()
+        .min(MAX_POINTS)
 }
 
 /// Niveles: Clean(0) · Low(1–14) · Medium(15–34) · High(35–64) · Critical(65+).
@@ -797,7 +861,10 @@ mod tests {
         assert!((0..=100).contains(&score), "score fuera de rango");
         let level = level_from_score(score);
         assert!(
-            matches!(level, ThreatLevel::Low | ThreatLevel::Clean | ThreatLevel::Medium),
+            matches!(
+                level,
+                ThreatLevel::Low | ThreatLevel::Clean | ThreatLevel::Medium
+            ),
             "el propio binario no debería elevarse a High/Critical"
         );
     }

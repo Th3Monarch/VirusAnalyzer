@@ -40,15 +40,15 @@ fn level_name(l: &ThreatLevel) -> String {
 /// Renderiza un resultado (archivo o carpeta) en el formato pedido.
 pub fn render(value: &Value, format: ReportFormat) -> Result<String, String> {
     if value.get("folderPath").is_some() {
-        let result: FolderScanResult =
-            serde_json::from_value(value.clone()).map_err(|e| format!("Informe no disponible: {e}"))?;
+        let result: FolderScanResult = serde_json::from_value(value.clone())
+            .map_err(|e| format!("Informe no disponible: {e}"))?;
         Ok(match format {
             ReportFormat::Html => render_folder_html(&result),
             ReportFormat::Csv => render_folder_csv(&result),
         })
     } else {
-        let result: ScanResult =
-            serde_json::from_value(value.clone()).map_err(|e| format!("Informe no disponible: {e}"))?;
+        let result: ScanResult = serde_json::from_value(value.clone())
+            .map_err(|e| format!("Informe no disponible: {e}"))?;
         Ok(match format {
             ReportFormat::Html => render_file_html(&result),
             ReportFormat::Csv => render_file_csv(&result),
@@ -76,7 +76,10 @@ pub fn render_file_html(r: &ScanResult) -> String {
     body.push_str(&format!("<p class=\"path\">{}</p>\n", escape_html(&r.path)));
     body.push_str("<div class=\"grid\">\n");
     body.push_str(&stat_cell("File size", &fmt_bytes(r.size)));
-    body.push_str(&stat_cell("Threat score", &format!("{}/100", r.threat_score)));
+    body.push_str(&stat_cell(
+        "Threat score",
+        &format!("{}/100", r.threat_score),
+    ));
     body.push_str(&stat_cell("Threat level", &level_badge(&r.threat_level)));
     body.push_str(&stat_cell("Scanned at", &escape_html(&r.scanned_at)));
     body.push_str("</div>\n</section>\n");
@@ -91,8 +94,10 @@ pub fn render_file_html(r: &ScanResult) -> String {
     if r.findings.is_empty() {
         body.push_str("<p class=\"none\">No heuristic findings.</p>\n");
     } else {
-        body.push_str("<table><thead><tr><th>Severity</th><th>Rule</th><th>Category</th>\
-                       <th>Evidence</th><th>Points</th></tr></thead><tbody>\n");
+        body.push_str(
+            "<table><thead><tr><th>Severity</th><th>Rule</th><th>Category</th>\
+                       <th>Evidence</th><th>Points</th></tr></thead><tbody>\n",
+        );
         for f in &r.findings {
             body.push_str(&format!(
                 "<tr><td>{}</td><td><span class=\"mono\">{}</span></td><td>{}</td><td>{}</td>\
@@ -143,13 +148,18 @@ pub fn render_file_html(r: &ScanResult) -> String {
 }
 
 fn render_assessment_html(a: &AiAssessment) -> String {
-    let mut out = String::from(
-        "<section class=\"card\"><h2>AI assessment</h2>\n<div class=\"grid\">\n",
-    );
+    let mut out =
+        String::from("<section class=\"card\"><h2>AI assessment</h2>\n<div class=\"grid\">\n");
     out.push_str(&stat_cell("Verdict", &verdict_badge(&a.verdict)));
-    out.push_str(&stat_cell("Confidence", &format!("{:.0}%", a.confidence * 100.0)));
+    out.push_str(&stat_cell(
+        "Confidence",
+        &format!("{:.0}%", a.confidence * 100.0),
+    ));
     out.push_str("</div>\n");
-    out.push_str(&format!("<p class=\"summary\">{}</p>\n", escape_html(&a.summary)));
+    out.push_str(&format!(
+        "<p class=\"summary\">{}</p>\n",
+        escape_html(&a.summary)
+    ));
     for para in a.explanation.split("\n\n") {
         let para = para.trim();
         if !para.is_empty() {
@@ -175,14 +185,25 @@ fn render_assessment_html(a: &AiAssessment) -> String {
 }
 
 fn render_static_html(s: &StaticAnalysis) -> String {
-    let mut out = String::from("<section class=\"card\"><h2>Static analysis</h2>\n<div class=\"grid\">\n");
-    out.push_str(&stat_cell("File type", &format!(
-        "{} ({}){}",
-        escape_html(&s.file_type),
-        escape_html(&s.file_type_extension),
-        if s.type_mismatch { " \u{2014} mismatch" } else { "" }
-    )));
-    out.push_str(&stat_cell("Entropy", &format!("{:.2} bits/byte", s.entropy)));
+    let mut out =
+        String::from("<section class=\"card\"><h2>Static analysis</h2>\n<div class=\"grid\">\n");
+    out.push_str(&stat_cell(
+        "File type",
+        &format!(
+            "{} ({}){}",
+            escape_html(&s.file_type),
+            escape_html(&s.file_type_extension),
+            if s.type_mismatch {
+                " \u{2014} mismatch"
+            } else {
+                ""
+            }
+        ),
+    ));
+    out.push_str(&stat_cell(
+        "Entropy",
+        &format!("{:.2} bits/byte", s.entropy),
+    ));
     out.push_str("</div>\n");
     if let Some(pe) = &s.pe {
         out.push_str(&format!(
@@ -190,7 +211,11 @@ fn render_static_html(s: &StaticAnalysis) -> String {
             if pe.is_dll { "DLL" } else { "executable" },
             escape_html(&pe.architecture),
             if pe.is_console { "console" } else { "GUI" },
-            if pe.has_certificate { " &middot; signed" } else { "" }
+            if pe.has_certificate {
+                " &middot; signed"
+            } else {
+                ""
+            }
         ));
         if !pe.imports.is_empty() {
             let imports = pe
@@ -206,9 +231,17 @@ fn render_static_html(s: &StaticAnalysis) -> String {
             ));
         }
         if !pe.sections.is_empty() {
-            out.push_str(&format!("<h3>Sections ({})</h3>\n<p class=\"wrap\">{}</p>\n",
+            out.push_str(&format!(
+                "<h3>Sections ({})</h3>\n<p class=\"wrap\">{}</p>\n",
                 pe.sections.len(),
-                escape_html(&pe.sections.iter().map(|s| s.name.clone()).collect::<Vec<_>>().join(", "))));
+                escape_html(
+                    &pe.sections
+                        .iter()
+                        .map(|s| s.name.clone())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                )
+            ));
         }
     }
     if !s.keywords.is_empty() {
@@ -246,7 +279,10 @@ fn render_reputation_html(vt: &VirusTotalResult) -> String {
     if !vt.threat_names.is_empty() {
         out.push_str("<h3>Threat names</h3>\n<p class=\"wrap\">");
         for name in &vt.threat_names {
-            out.push_str(&format!("<span class=\"chip danger\">{}</span> ", escape_html(name)));
+            out.push_str(&format!(
+                "<span class=\"chip danger\">{}</span> ",
+                escape_html(name)
+            ));
         }
         out.push_str("</p>\n");
     }
@@ -280,9 +316,11 @@ pub fn render_folder_html(r: &FolderScanResult) -> String {
     body.push_str(&stat_cell("Duration", &format!("{} ms", r.duration_ms)));
     body.push_str("</div>\n</section>\n");
 
-    body.push_str("<section class=\"card\"><h2>Files</h2>\n<table><thead><tr>\
+    body.push_str(
+        "<section class=\"card\"><h2>Files</h2>\n<table><thead><tr>\
                    <th>File</th><th>Size</th><th>MD5</th><th>SHA-1</th><th>SHA-256</th>\
-                   <th>Status</th></tr></thead><tbody>\n");
+                   <th>Status</th></tr></thead><tbody>\n",
+    );
     for f in &r.files {
         body.push_str(&folder_file_row(f));
     }
@@ -325,7 +363,14 @@ pub fn render_file_csv(r: &ScanResult) -> String {
     let findings = r
         .findings
         .iter()
-        .map(|f| format!("[{}] {} ({})", severity_name(&f.severity), f.rule_name, f.category))
+        .map(|f| {
+            format!(
+                "[{}] {} ({})",
+                severity_name(&f.severity),
+                f.rule_name,
+                f.category
+            )
+        })
         .collect::<Vec<_>>()
         .join(" | ");
     let evidence = r
@@ -334,22 +379,46 @@ pub fn render_file_csv(r: &ScanResult) -> String {
         .flat_map(|f| f.evidence.clone())
         .collect::<Vec<_>>()
         .join(" | ");
-    let verdict = r.ai_assessment.as_ref().map(|a| a.verdict.clone()).unwrap_or_default();
+    let verdict = r
+        .ai_assessment
+        .as_ref()
+        .map(|a| a.verdict.clone())
+        .unwrap_or_default();
     let confidence = r
         .ai_assessment
         .as_ref()
         .map(|a| format!("{:.0}%", a.confidence * 100.0))
         .unwrap_or_default();
-    let summary = r.ai_assessment.as_ref().map(|a| a.summary.clone()).unwrap_or_default();
+    let summary = r
+        .ai_assessment
+        .as_ref()
+        .map(|a| a.summary.clone())
+        .unwrap_or_default();
     let vt = r.reputation.as_ref();
     let vt_malicious = vt.map(|v| v.malicious).unwrap_or(0);
     let vt_total = vt.map(|v| v.total).unwrap_or(0);
     let vt_names = vt.map(|v| v.threat_names.join("; ")).unwrap_or_default();
 
     let headers = [
-        "id", "fileName", "path", "sizeBytes", "scannedAt", "threatScore", "threatLevel",
-        "verdict", "confidence", "summary", "md5", "sha1", "sha256", "findingsCount",
-        "findings", "evidence", "vtMalicious", "vtTotal", "vtThreatNames",
+        "id",
+        "fileName",
+        "path",
+        "sizeBytes",
+        "scannedAt",
+        "threatScore",
+        "threatLevel",
+        "verdict",
+        "confidence",
+        "summary",
+        "md5",
+        "sha1",
+        "sha256",
+        "findingsCount",
+        "findings",
+        "evidence",
+        "vtMalicious",
+        "vtTotal",
+        "vtThreatNames",
     ];
     let row = [
         r.id.clone(),
@@ -405,7 +474,14 @@ pub fn render_folder_csv(r: &FolderScanResult) -> String {
     out.push('\n');
 
     out.push_str(&csv_row(&["SECTION", "files"]));
-    out.push_str(&csv_row(&["relativePath", "sizeBytes", "md5", "sha1", "sha256", "error"]));
+    out.push_str(&csv_row(&[
+        "relativePath",
+        "sizeBytes",
+        "md5",
+        "sha1",
+        "sha256",
+        "error",
+    ]));
     for f in &r.files {
         out.push_str(&csv_row(&[
             f.relative_path.clone(),

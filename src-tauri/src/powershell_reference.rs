@@ -138,7 +138,9 @@ const ENTRIES: &[Entry] = &[
         usage: "Restart-Service -Name <service>",
         example: "Restart-Service -Name spooler",
         risk: RiskLevel::Medium,
-        warning_es: Some("Reinicia servicios: puede interrumpir temporalmente funciones del sistema."),
+        warning_es: Some(
+            "Reinicia servicios: puede interrumpir temporalmente funciones del sistema.",
+        ),
         warning_en: Some("Restarts services: may temporarily interrupt system functions."),
     },
     Entry {
@@ -375,11 +377,7 @@ pub fn risk_for(raw: &str) -> RiskLevel {
         .filter(|t| !t.is_empty())
         .collect();
 
-    let has_pair = |a: &str, b: &str| {
-        tokens
-            .windows(2)
-            .any(|w| w[0] == a && w[1] == b)
-    };
+    let has_pair = |a: &str, b: &str| tokens.windows(2).any(|w| w[0] == a && w[1] == b);
     let has = |t: &str| tokens.contains(&t);
 
     const HIGH_PAIRS: [(&str, &str); 24] = [
@@ -428,9 +426,7 @@ pub fn risk_for(raw: &str) -> RiskLevel {
         ("install", "module"),
         ("set", "acl"),
     ];
-    const MEDIUM_SINGLE: [&str; 6] = [
-        "wmic", "chkdsk", "sfc", "dism", "regsvr32", "certutil",
-    ];
+    const MEDIUM_SINGLE: [&str; 6] = ["wmic", "chkdsk", "sfc", "dism", "regsvr32", "certutil"];
 
     for (a, b) in HIGH_PAIRS {
         if has_pair(a, b) {
@@ -467,7 +463,10 @@ mod tests {
             assert!(!c.description.trim().is_empty());
             assert!(!c.usage.trim().is_empty());
             assert!(!c.example.trim().is_empty());
-            assert!(CATEGORIES.contains(&c.category.as_str()), "categoría válida");
+            assert!(
+                CATEGORIES.contains(&c.category.as_str()),
+                "categoría válida"
+            );
         }
     }
 
@@ -476,7 +475,9 @@ mod tests {
         let cat = catalog(Language::Es);
         assert!(cat.iter().any(|c| c.description.contains("Muestra")));
         let en = catalog(Language::En);
-        assert!(en.iter().all(|c| !c.description.chars().any(|ch| ch == 'á' || ch == 'ñ')));
+        assert!(en
+            .iter()
+            .all(|c| !c.description.chars().any(|ch| ch == 'á' || ch == 'ñ')));
     }
 
     #[test]
@@ -484,17 +485,32 @@ mod tests {
         // La heurística devuelve Safe para comandos de solo lectura (no pide
         // confirmación); la etiqueta educativa "Low" del catálogo es aparte.
         assert_eq!(risk_for("Get-Date"), RiskLevel::Safe);
-        assert_eq!(risk_for("Get-Process | Sort-Object CPU -Descending"), RiskLevel::Safe);
+        assert_eq!(
+            risk_for("Get-Process | Sort-Object CPU -Descending"),
+            RiskLevel::Safe
+        );
         assert_eq!(risk_for("Get-ChildItem C:\\Temp"), RiskLevel::Safe);
-        assert_eq!(risk_for("Get-NetTCPConnection -State Established"), RiskLevel::Safe);
-        assert_eq!(risk_for("Get-WinEvent -LogName System -MaxEvents 20"), RiskLevel::Safe);
+        assert_eq!(
+            risk_for("Get-NetTCPConnection -State Established"),
+            RiskLevel::Safe
+        );
+        assert_eq!(
+            risk_for("Get-WinEvent -LogName System -MaxEvents 20"),
+            RiskLevel::Safe
+        );
     }
 
     #[test]
     fn risk_of_destructive_commands_is_high() {
-        assert_eq!(risk_for("Remove-Item C:\\Temp\\old -Recurse -Force"), RiskLevel::High);
+        assert_eq!(
+            risk_for("Remove-Item C:\\Temp\\old -Recurse -Force"),
+            RiskLevel::High
+        );
         assert_eq!(risk_for("Stop-Service -Name spooler"), RiskLevel::High);
-        assert_eq!(risk_for("Invoke-Expression (Get-Content script.ps1)"), RiskLevel::High);
+        assert_eq!(
+            risk_for("Invoke-Expression (Get-Content script.ps1)"),
+            RiskLevel::High
+        );
         assert_eq!(risk_for("Set-ExecutionPolicy Bypass"), RiskLevel::High);
         assert_eq!(risk_for("restart-computer -Force"), RiskLevel::High);
         assert_eq!(risk_for("shutdown /s /t 0"), RiskLevel::High);

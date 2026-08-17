@@ -76,7 +76,11 @@ pub fn parse(bytes: &[u8]) -> Option<PeInfo> {
     } else {
         le_u32(bytes, optional + 92)
     } as usize;
-    let data_directory = if is_plus { optional + 112 } else { optional + 96 };
+    let data_directory = if is_plus {
+        optional + 112
+    } else {
+        optional + 96
+    };
 
     let sections_start = optional + size_of_optional;
 
@@ -116,10 +120,11 @@ pub fn parse(bytes: &[u8]) -> Option<PeInfo> {
     }
 
     // Directorio de seguridad (certificado Authenticode).
-    let (has_certificate, certificate_size) = match read_directory(bytes, data_directory, number_of_rva_and_sizes, 4) {
-        Some((_rva, size)) => (size > 0, size as u32),
-        None => (false, 0),
-    };
+    let (has_certificate, certificate_size) =
+        match read_directory(bytes, data_directory, number_of_rva_and_sizes, 4) {
+            Some((_rva, size)) => (size > 0, size as u32),
+            None => (false, 0),
+        };
 
     // Imports.
     let mut imports: Vec<PeImportDll> = Vec::new();
@@ -293,7 +298,11 @@ fn parse_thunks(
     out
 }
 
-fn parse_exports(bytes: &[u8], dir_rva: u32, secs: &[(String, u32, u32, u32, usize)]) -> Vec<String> {
+fn parse_exports(
+    bytes: &[u8],
+    dir_rva: u32,
+    secs: &[(String, u32, u32, u32, usize)],
+) -> Vec<String> {
     let mut out: Vec<String> = Vec::new();
     let Some(off) = rva_to_offset(bytes, dir_rva, secs) else {
         return out;

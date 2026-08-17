@@ -19,8 +19,12 @@ const CHUNK_SIZE: usize = 1024 * 1024;
 
 /// Ejecuta el análisis estático completo de un archivo.
 pub fn analyze(path: &Path) -> Result<StaticAnalysis, String> {
-    let mut file = File::open(path)
-        .map_err(|e| format!("No se pudo abrir {} para análisis estático: {e}", path.display()))?;
+    let mut file = File::open(path).map_err(|e| {
+        format!(
+            "No se pudo abrir {} para análisis estático: {e}",
+            path.display()
+        )
+    })?;
 
     // 1. Magic bytes (solo el inicio del archivo).
     let mut head = vec![0u8; HEAD_BYTES];
@@ -109,13 +113,27 @@ fn compatible_extension(detected: &str, actual: &str) -> bool {
     if detected == "zip" {
         return matches!(
             actual,
-            "zip" | "docx" | "xlsx" | "pptx" | "pptm" | "docm" | "odt" | "ods" | "odp" | "jar"
-                | "apk" | "xpi" | "vsix"
+            "zip"
+                | "docx"
+                | "xlsx"
+                | "pptx"
+                | "pptm"
+                | "docm"
+                | "odt"
+                | "ods"
+                | "odp"
+                | "jar"
+                | "apk"
+                | "xpi"
+                | "vsix"
         );
     }
     // Cualquier PE se detecta como "exe"; cubre las extensiones habituales.
     if detected == "exe" {
-        return matches!(actual, "exe" | "dll" | "sys" | "scr" | "ocx" | "cpl" | "com" | "drv" | "efi");
+        return matches!(
+            actual,
+            "exe" | "dll" | "sys" | "scr" | "ocx" | "cpl" | "com" | "drv" | "efi"
+        );
     }
     if detected == "json" {
         return matches!(actual, "json" | "geojson" | "map");
@@ -227,19 +245,24 @@ mod tests {
         let analysis = analyze(&exe).expect("análisis estático");
 
         assert!(analysis.is_pe, "el binario debería detectarse como PE");
-        assert!((0.0..=8.0).contains(&analysis.entropy), "entropía fuera de rango");
+        assert!(
+            (0.0..=8.0).contains(&analysis.entropy),
+            "entropía fuera de rango"
+        );
 
         let pe = analysis.pe.expect("detalle PE");
         assert!(!pe.sections.is_empty(), "debería haber secciones");
         assert!(!pe.imports.is_empty(), "debería haber imports");
-        assert!(pe.sections.iter().any(|s| !s.flags.is_empty()), "secciones con flags");
+        assert!(
+            pe.sections.iter().any(|s| !s.flags.is_empty()),
+            "secciones con flags"
+        );
 
         let import_count = pe.imports.iter().map(|d| d.functions.len()).sum::<usize>();
         assert!(import_count > 0, "debería haber funciones importadas");
-        let has_system_dll = pe
-            .imports
-            .iter()
-            .any(|d| d.name.to_lowercase().contains("kernel32") || d.name.to_lowercase().contains("ucrtbase"));
+        let has_system_dll = pe.imports.iter().any(|d| {
+            d.name.to_lowercase().contains("kernel32") || d.name.to_lowercase().contains("ucrtbase")
+        });
         assert!(has_system_dll, "debería importar DLLs del sistema");
     }
 }
