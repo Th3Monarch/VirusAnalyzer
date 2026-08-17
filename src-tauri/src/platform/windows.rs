@@ -29,6 +29,7 @@ impl WindowsTerminalManager {
 
     /// Devuelve una referencia al manager subyacente para que los comandos
     /// Tauri que aún usan el tipo concreto puedan acceder a él (transición).
+    #[allow(dead_code)]
     pub fn inner(&self) -> &powershell::PowerShellManager {
         &self.manager
     }

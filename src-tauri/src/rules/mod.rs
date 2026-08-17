@@ -330,7 +330,7 @@ const DESCRIPTIONS_ES: &[(&str, &str)] = &[
 /// Descripción localizada de una regla para el informe del motor de
 /// evaluación. En `Es` se usa la ficha en español; el resto conserva la
 /// descripción original en inglés.
-pub fn description_in<'a>(rule_name: &'a str, lang: Language) -> &'a str {
+pub fn description_in(rule_name: &str, lang: Language) -> &str {
     if lang == Language::Es {
         for (name, es) in DESCRIPTIONS_ES {
             if *name == rule_name {
@@ -360,8 +360,7 @@ fn finding(id: &str, evidence: Vec<String>) -> Finding {
 /// Normaliza un nombre de API quitando el sufijo ANSI/Unicode (A/W) y
 /// convirtiendo a minúsculas: `CreateRemoteThreadW` → `createremotethread`.
 fn norm_api(name: &str) -> String {
-    name.trim_end_matches(|c| c == 'A' || c == 'W')
-        .to_ascii_lowercase()
+    name.trim_end_matches(['A', 'W']).to_ascii_lowercase()
 }
 
 /// Funciones importadas que coinciden con alguna aguja (prefijo seguro).
@@ -740,7 +739,7 @@ fn match_known_hash(hashes: Option<&FileHashes>) -> Option<String> {
             || h.sha1.as_deref() == Some(*want)
             || h.md5.as_deref() == Some(*want)
         {
-            return Some(format!("{want}"));
+            return Some(want.to_string());
         }
     }
     None

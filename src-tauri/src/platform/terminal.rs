@@ -50,6 +50,7 @@ pub struct TerminalCommandInfo {
 }
 
 /// Trait que cada plataforma debe implementar para ofrecer terminal.
+#[allow(dead_code)]
 pub trait TerminalManager: Send + Sync {
     /// Ejecuta un comando con un timeout máximo en milisegundos.
     ///

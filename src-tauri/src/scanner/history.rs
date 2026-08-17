@@ -74,8 +74,10 @@ impl ScanStore {
     /// Carga el historial persistido (o una tienda vacía si no existe) y migra
     /// las entradas antiguas sin `id` a identificadores estables.
     pub fn load(file: PathBuf) -> Self {
-        let mut store = Self::default();
-        store.file = Some(file.clone());
+        let mut store = Self {
+            file: Some(file.clone()),
+            ..Default::default()
+        };
         let Ok(raw) = std::fs::read_to_string(&file) else {
             return store;
         };

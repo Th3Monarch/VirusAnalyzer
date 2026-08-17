@@ -709,7 +709,7 @@ fn key_categories(findings: &[Finding]) -> Vec<String> {
         *by_cat.entry(f.category.clone()).or_default() += f.points;
     }
     let mut list: Vec<(String, u32)> = by_cat.into_iter().collect();
-    list.sort_by(|a, b| b.1.cmp(&a.1));
+    list.sort_by_key(|b| std::cmp::Reverse(b.1));
     list.into_iter().take(3).map(|(c, _)| c).collect()
 }
 

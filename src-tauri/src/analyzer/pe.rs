@@ -122,7 +122,7 @@ pub fn parse(bytes: &[u8]) -> Option<PeInfo> {
     // Directorio de seguridad (certificado Authenticode).
     let (has_certificate, certificate_size) =
         match read_directory(bytes, data_directory, number_of_rva_and_sizes, 4) {
-            Some((_rva, size)) => (size > 0, size as u32),
+            Some((_rva, size)) => (size > 0, size),
             None => (false, 0),
         };
 
@@ -431,16 +431,16 @@ fn le_u16(b: &[u8], off: usize) -> u16 {
 
 fn le_u32(b: &[u8], off: usize) -> u32 {
     let mut a = [0u8; 4];
-    for i in 0..4 {
-        a[i] = *b.get(off + i).unwrap_or(&0);
+    for (i, byte) in a.iter_mut().enumerate() {
+        *byte = *b.get(off + i).unwrap_or(&0);
     }
     u32::from_le_bytes(a)
 }
 
 fn le_u64(b: &[u8], off: usize) -> u64 {
     let mut a = [0u8; 8];
-    for i in 0..8 {
-        a[i] = *b.get(off + i).unwrap_or(&0);
+    for (i, byte) in a.iter_mut().enumerate() {
+        *byte = *b.get(off + i).unwrap_or(&0);
     }
     u64::from_le_bytes(a)
 }

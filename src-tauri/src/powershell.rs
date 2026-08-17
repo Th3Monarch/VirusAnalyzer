@@ -28,9 +28,11 @@ use serde::{Deserialize, Serialize};
 ///
 /// La arquitectura admite modificarlo por ejecución (p. ej. desde tests o
 /// una futura preferencia en Ajustes) pasando otro valor a [`execute`].
+#[allow(dead_code)]
 pub const DEFAULT_TIMEOUT_MS: u64 = 30_000;
 
 /// Límite de longitud del comando para evitar abusos evidentes.
+#[allow(dead_code)]
 pub const MAX_COMMAND_LEN: usize = 64 * 1024;
 
 /// Mensaje cuando no se encuentra PowerShell.
@@ -276,7 +278,7 @@ fn decode_output(bytes: Vec<u8>) -> String {
 
 fn decode_byte(b: u8) -> char {
     match b {
-        0x80..=0x9F => CP1252[b as usize - 0x80] as char,
+        0x80..=0x9F => CP1252[b as usize - 0x80],
         _ => b as char,
     }
 }
