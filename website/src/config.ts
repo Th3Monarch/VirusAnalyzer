@@ -12,7 +12,7 @@ export interface SiteConfig {
   discordUrl: string;
 }
 
-export const basePath = "/";
+export const basePath = "/VirusAnalyzer/";
 export const basename = basePath.replace(/\/+$/, "");
 
 export const site: SiteConfig = {
