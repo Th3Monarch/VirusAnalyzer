@@ -852,6 +852,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_os = "windows")]
     fn evaluates_own_test_binary() {
         let exe = std::env::current_exe().expect("current exe");
         let analysis = crate::analyzer::analyze(&exe).expect("análisis estático");

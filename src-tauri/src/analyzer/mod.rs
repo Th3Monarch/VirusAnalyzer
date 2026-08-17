@@ -240,6 +240,7 @@ mod tests {
     /// El propio binario de test es un PE real: sirve de validación
     /// end-to-end del parser (cabeceras, secciones, imports, entropía).
     #[test]
+    #[cfg(target_os = "windows")]
     fn analyzes_own_binary_as_pe() {
         let exe = std::env::current_exe().expect("current exe");
         let analysis = analyze(&exe).expect("análisis estático");
