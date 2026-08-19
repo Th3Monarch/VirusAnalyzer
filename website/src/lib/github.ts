@@ -15,7 +15,7 @@ export interface Release {
   draft: boolean;
 }
 
-export type DownloadKind = "setup" | "portable" | "executable";
+export type DownloadKind = "setup" | "portable" | "executable" | "deb" | "appimage" | "dmg";
 
 export interface DownloadAsset {
   name: string;
@@ -42,6 +42,9 @@ export interface DownloadBundle {
 const SETUP_RE = /-Setup\.exe$/i;
 const PORTABLE_RE = /-Portable\.zip$/i;
 const EXECUTABLE_RE = /\.exe$/i;
+const DEB_RE = /\.deb$/i;
+const APPIMAGE_RE = /\.AppImage$/i;
+const DMG_RE = /\.dmg$/i;
 const CHECKSUM_RE = /\.sha256$/i;
 
 function isSetup(name: string): boolean {
@@ -65,6 +68,15 @@ export function classifyAsset(asset: ReleaseAsset): DownloadAsset | null {
   }
   if (isExecutable(asset.name)) {
     return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "executable" };
+  }
+  if (DEB_RE.test(asset.name)) {
+    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "deb" };
+  }
+  if (APPIMAGE_RE.test(asset.name)) {
+    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "appimage" };
+  }
+  if (DMG_RE.test(asset.name)) {
+    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "dmg" };
   }
   return null;
 }

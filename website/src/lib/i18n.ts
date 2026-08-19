@@ -67,6 +67,9 @@ interface Dictionary {
     recommended: string;
     downloadInstaller: string;
     downloadPortable: string;
+    downloadDeb: string;
+    downloadAppimage: string;
+    downloadDmg: string;
     sourceTitle: string;
     sourceDesc: string;
     verifyTitle: string;
@@ -202,6 +205,9 @@ export const translations: Record<Lang, Dictionary> = {
       recommended: "Recommended",
       downloadInstaller: "Download installer",
       downloadPortable: "Download portable",
+      downloadDeb: "Download .deb",
+      downloadAppimage: "Download AppImage",
+      downloadDmg: "Download .dmg",
       sourceTitle: "Source Code",
       sourceDesc:
         "Everything you see here is open source. Review the code, report issues and build it yourself.",
@@ -340,6 +346,9 @@ export const translations: Record<Lang, Dictionary> = {
       recommended: "Recomendado",
       downloadInstaller: "Descargar instalador",
       downloadPortable: "Descargar portable",
+      downloadDeb: "Descargar .deb",
+      downloadAppimage: "Descargar AppImage",
+      downloadDmg: "Descargar .dmg",
       sourceTitle: "Código fuente",
       sourceDesc:
         "Todo lo que ves aquí es código abierto. Revisa el código, informa de incidencias y compílalo tú mismo.",
