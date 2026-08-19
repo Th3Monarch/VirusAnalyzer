@@ -1047,7 +1047,7 @@ export function Analysis() {
     if (!id) return;
     try {
       const path = await save({
-        defaultPath: `virusanalyzer-report-${id.slice(0, 8)}.${format}`,
+        defaultPath: `prometeo-report-${id.slice(0, 8)}.${format}`,
         filters: [{ name: format.toUpperCase(), extensions: [format] }],
       });
       if (!path) return;

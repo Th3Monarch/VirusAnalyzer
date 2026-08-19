@@ -1,4 +1,4 @@
-//! VirusAnalyzer 2.0 — Backend Tauri.
+//! Prometeo 2.0 — Backend Tauri.
 //!
 //! El frontend (React) está separado estrictamente del backend (Rust).
 //! Rust posee todo el acceso a sistema (archivos, procesos, hashing, red)
@@ -60,7 +60,7 @@ fn save_config(app: tauri::AppHandle, config: AppConfig) -> Result<AppConfig, St
 #[tauri::command]
 fn get_app_info() -> AppInfo {
     AppInfo {
-        name: "VirusAnalyzer 2.0".into(),
+        name: "Prometeo 2.0".into(),
         version: env!("CARGO_PKG_VERSION").into(),
         tagline: "Analyze. Understand. Protect.".into(),
     }

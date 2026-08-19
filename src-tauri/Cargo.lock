@@ -2750,6 +2750,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "prometeo"
+version = "2.0.0"
+dependencies = [
+ "chrono",
+ "infer",
+ "md-5",
+ "num_cpus",
+ "os_info",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sha2",
+ "sysinfo",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "ureq",
+ "uuid",
+]
+
+[[package]]
 name = "quick-xml"
 version = "0.41.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4372,28 +4394,6 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
-
-[[package]]
-name = "virusanalyzer"
-version = "2.0.0"
-dependencies = [
- "chrono",
- "infer",
- "md-5",
- "num_cpus",
- "os_info",
- "serde",
- "serde_json",
- "sha1",
- "sha2",
- "sysinfo",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "ureq",
- "uuid",
-]
 
 [[package]]
 name = "vswhom"

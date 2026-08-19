@@ -6,7 +6,7 @@
 export type TranslationDict = Record<string, string>;
 
 const esDict = {
-  "app.name": "VirusAnalyzer 2.0",
+  "app.name": "Prometeo 2.0",
   "app.tagline": "Analyze. Understand. Protect.",
   "app.analyzeUnderstandProtect": "Analiza archivos sospechosos y comprende su riesgo.",
 
@@ -297,7 +297,7 @@ const esDict = {
   "powershell.subtitle": "Terminal y referencia de comandos.",
   "powershell.warningTitle": "Advertencia",
   "powershell.warningText":
-    "PowerShell es una función avanzada para administradores. Los comandos que ejecutes se lanzan con los permisos de tu usuario, con un límite de 30 segundos y opción de cancelación. VirusAnalyzer nunca ejecuta comandos automáticamente durante un análisis.",
+    "PowerShell es una función avanzada para administradores. Los comandos que ejecutes se lanzan con los permisos de tu usuario, con un límite de 30 segundos y opción de cancelación. Prometeo nunca ejecuta comandos automáticamente durante un análisis.",
   "powershell.openReference": "Abrir referencia",
   "powershell.terminalTitle": "Terminal",
   "powershell.terminalSubtitle": "Ejecuta comandos con los permisos de tu usuario.",
@@ -383,10 +383,10 @@ const esDict = {
   "settings.vtEnabledHelp":
     "Permite consultar el hash del archivo durante el análisis de archivos individuales.",
   "settings.vtConsent":
-    "Consentimiento explícito: VirusAnalyzer envía a VirusTotal únicamente el hash del archivo (MD5, SHA-1 o SHA-256). El contenido del archivo nunca se sube ni se envía a terceros.",
+    "Consentimiento explícito: Prometeo envía a VirusTotal únicamente el hash del archivo (MD5, SHA-1 o SHA-256). El contenido del archivo nunca se sube ni se envía a terceros.",
   "settings.contextMenu": "Menú contextual de Windows",
-  "settings.contextMenuHelp": "Añade «Analizar con VirusAnalyzer» al menú contextual.",
-  "settings.contextMenuDesc": "Haz clic con el botón derecho sobre un archivo o carpeta y elige «Analizar con VirusAnalyzer» para iniciar el análisis.",
+  "settings.contextMenuHelp": "Añade «Analizar con Prometeo» al menú contextual.",
+  "settings.contextMenuDesc": "Haz clic con el botón derecho sobre un archivo o carpeta y elige «Analizar con Prometeo» para iniciar el análisis.",
   "settings.contextMenuChecking": "Comprobando…",
   "settings.contextMenuInstalled": "Instalado",
   "settings.contextMenuNotInstalled": "No instalado",
@@ -394,7 +394,7 @@ const esDict = {
   "settings.contextMenuDisable": "Desactivar",
   "settings.contextMenuInstalledToast": "Menú contextual activado.",
   "settings.contextMenuRemoved": "Menú contextual eliminado.",
-  "contextMenu.label": "Analizar con VirusAnalyzer",
+  "contextMenu.label": "Analizar con Prometeo",
   "settings.storage": "Almacenamiento",
   "settings.storageQuarantine": "Carpeta de cuarentena",
   "settings.storageHistory": "Retención del historial (días)",
@@ -410,7 +410,7 @@ const esDict = {
 export type TranslationKey = keyof typeof esDict;
 
 const enDict: Record<TranslationKey, string> = {
-  "app.name": "VirusAnalyzer 2.0",
+  "app.name": "Prometeo 2.0",
   "app.tagline": "Analyze. Understand. Protect.",
   "app.analyzeUnderstandProtect": "Analyze suspicious files and understand their risk.",
 
@@ -689,7 +689,7 @@ const enDict: Record<TranslationKey, string> = {
   "powershell.subtitle": "Terminal and command reference.",
   "powershell.warningTitle": "Warning",
   "powershell.warningText":
-    "PowerShell is an advanced feature for administrators. Commands you run are launched with your user's permissions, with a 30-second limit and a cancel option. VirusAnalyzer never executes commands automatically during a scan.",
+    "PowerShell is an advanced feature for administrators. Commands you run are launched with your user's permissions, with a 30-second limit and a cancel option. Prometeo never executes commands automatically during a scan.",
   "powershell.openReference": "Open reference",
   "powershell.terminalTitle": "Terminal",
   "powershell.terminalSubtitle": "Run commands with your user's permissions.",
@@ -774,10 +774,10 @@ const enDict: Record<TranslationKey, string> = {
   "settings.vtEnabledHelp":
     "Allows the file hash to be queried during single-file analysis.",
   "settings.vtConsent":
-    "Explicit consent: VirusAnalyzer sends VirusTotal only the file hash (MD5, SHA-1, or SHA-256). The file content is never uploaded or shared with third parties.",
+    "Explicit consent: Prometeo sends VirusTotal only the file hash (MD5, SHA-1, or SHA-256). The file content is never uploaded or shared with third parties.",
   "settings.contextMenu": "Windows context menu",
-  "settings.contextMenuHelp": "Adds \"Analyze with VirusAnalyzer\" to the context menu.",
-  "settings.contextMenuDesc": "Right-click a file or folder and choose \"Analyze with VirusAnalyzer\" to start an analysis.",
+  "settings.contextMenuHelp": "Adds \"Analyze with Prometeo\" to the context menu.",
+  "settings.contextMenuDesc": "Right-click a file or folder and choose \"Analyze with Prometeo\" to start an analysis.",
   "settings.contextMenuChecking": "Checking…",
   "settings.contextMenuInstalled": "Installed",
   "settings.contextMenuNotInstalled": "Not installed",
@@ -785,7 +785,7 @@ const enDict: Record<TranslationKey, string> = {
   "settings.contextMenuDisable": "Disable",
   "settings.contextMenuInstalledToast": "Context menu enabled.",
   "settings.contextMenuRemoved": "Context menu removed.",
-  "contextMenu.label": "Analyze with VirusAnalyzer",
+  "contextMenu.label": "Analyze with Prometeo",
   "settings.storage": "Storage",
   "settings.storageQuarantine": "Quarantine folder",
   "settings.storageHistory": "History retention (days)",

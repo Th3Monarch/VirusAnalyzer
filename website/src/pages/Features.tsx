@@ -248,8 +248,8 @@ const features: Feature[] = [
     icon: MousePointerClick,
     title: { en: "Context Menu Integration", es: "Integración en el menú contextual" },
     description: {
-      en: "Optional “Analyze with VirusAnalyzer” entry in Windows Explorer.",
-      es: "Entrada opcional “Analizar con VirusAnalyzer” en el Explorador de Windows.",
+      en: "Optional “Analyze with Prometeo” entry in Windows Explorer.",
+      es: "Entrada opcional “Analizar con Prometeo” en el Explorador de Windows.",
     },
     points: {
       en: [
@@ -271,13 +271,13 @@ const copy = {
     eyebrow: "Features",
     title: "Powerful analysis. Simple interface.",
     intro:
-      "VirusAnalyzer helps you understand suspicious files by combining static analysis, an explainable heuristic engine and optional reputation data — all in a cross-platform desktop application for Windows, macOS and Linux.",
+      "Prometeo helps you understand suspicious files by combining static analysis, an explainable heuristic engine and optional reputation data — all in a cross-platform desktop application for Windows, macOS and Linux.",
   },
   es: {
     eyebrow: "Características",
     title: "Análisis potente. Interfaz sencilla.",
     intro:
-      "VirusAnalyzer te ayuda a entender archivos sospechosos combinando análisis estático, un motor heurístico explicable y datos de reputación opcionales — todo en una aplicación de escritorio multiplataforma para Windows, macOS y Linux.",
+      "Prometeo te ayuda a entender archivos sospechosos combinando análisis estático, un motor heurístico explicable y datos de reputación opcionales — todo en una aplicación de escritorio multiplataforma para Windows, macOS y Linux.",
   },
 } satisfies Record<"en" | "es", Record<string, string>>;
 

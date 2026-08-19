@@ -1,8 +1,8 @@
-# 🛡️ VirusAnalyzer
+# 🛡️ Prometeo
 
 > **Analyze. Understand. Protect.**
 
-VirusAnalyzer is a **cross-platform desktop application** (Windows, macOS, Linux) for **static malware analysis and threat assessment**.
+Prometeo is a **cross-platform desktop application** (Windows, macOS, Linux) for **open-source malware analysis and threat assessment**.
 
 It combines local file analysis, heuristic detection, hash reputation, optional VirusTotal integration, AI-assisted explanations, quarantine management, system diagnostics, and detailed analysis reports into a single interface.
 
@@ -24,7 +24,7 @@ The project is built with **React + TypeScript + Tauri 2 + Rust**, with a focus 
 
 ### 🧬 Static Analysis
 
-VirusAnalyzer can analyze supported executables and inspect characteristics such as:
+Prometeo can analyze supported executables and inspect characteristics such as:
 
 * PE structure (Windows).
 * Sections, imports, entry point.
@@ -63,7 +63,7 @@ Suspicious files can be isolated with metadata (original path, hash, ID, date, r
 
 ### 💻 Terminal
 
-VirusAnalyzer includes a terminal module adapted to each platform:
+Prometeo includes a terminal module adapted to each platform:
 
 | Platform | Shell |
 |----------|-------|
@@ -97,7 +97,7 @@ Export analysis results as **HTML** or **CSV** with file info, hashes, scores, f
 
 ```text
 ┌──────────────────────────────────────────┐
-│              VIRUSANALYZER               │
+│              PROMETEO                  │
 ├──────────────────────────────────────────┤
 │                                          │
 │              React + TypeScript          │
@@ -141,7 +141,7 @@ Export analysis results as **HTML** or **CSV** with file info, hashes, scores, f
 ## 📁 Project Structure
 
 ```text
-VirusAnalyzer/
+Prometeo/
 │
 ├── src/
 │   ├── components/
@@ -228,7 +228,7 @@ sudo apt-get install -y \
 
 ```bash
 git clone https://github.com/th3monarch/VirusAnalyzer.git
-cd VirusAnalyzer
+cd Prometeo
 npm install
 ```
 
@@ -273,12 +273,12 @@ npm run build:macos
 
 ```text
 dist/
-├── VirusAnalyzer-2.0.0-Setup.exe        # Windows NSIS installer
-├── VirusAnalyzer-2.0.0.exe              # Windows portable
-├── VirusAnalyzer-2.0.0-Portable.zip     # Windows portable ZIP
-├── VirusAnalyzer_2.0.0_amd64.deb        # Linux Debian package
-├── VirusAnalyzer-2.0.0-amd64.AppImage   # Linux AppImage
-├── VirusAnalyzer-2.0.0-aarch64.dmg      # macOS DMG
+├── Prometeo-2.0.0-Setup.exe          # Windows NSIS installer
+├── Prometeo-2.0.0.exe                # Windows portable
+├── Prometeo-2.0.0-Portable.zip       # Windows portable ZIP
+├── Prometeo_2.0.0_amd64.deb          # Linux Debian package
+├── Prometeo-2.0.0-amd64.AppImage     # Linux AppImage
+├── Prometeo-2.0.0-aarch64.dmg        # macOS DMG
 └── *.sha256                             # SHA-256 checksums
 ```
 
@@ -286,7 +286,7 @@ dist/
 
 ## ⚙️ Configuration
 
-VirusAnalyzer stores application configuration locally.
+Prometeo stores application configuration locally.
 
 Configuration can include: language, theme, VirusTotal API key, context menu settings (Windows only), and other preferences.
 
@@ -296,7 +296,7 @@ API keys and credentials should **never** be committed to Git.
 
 ## 🔐 Security
 
-VirusAnalyzer is a security analysis tool, so security is a core design consideration:
+Prometeo is a security analysis tool, so security is a core design consideration:
 
 * Static analysis without executing suspicious files.
 * No automatic execution of analyzed files.
@@ -312,7 +312,7 @@ Terminal commands execute with the permissions of the current user. Users should
 
 ## ⚠️ Disclaimer
 
-VirusAnalyzer is a **malware analysis and threat assessment tool**. It is **not a replacement for a professional endpoint security product or antivirus solution**.
+Prometeo is a **malware analysis and threat assessment tool**. It is **not a replacement for a professional endpoint security product or antivirus solution**.
 
 A "Clean" result does **not** guarantee that a file is completely safe. A "High" or "Critical" rating represents an assessment based on available evidence and does not necessarily prove that a file is malware.
 
@@ -376,7 +376,7 @@ Before submitting a pull request:
 For bugs, please include:
 
 * OS and version.
-* VirusAnalyzer version.
+* Prometeo version.
 * Steps to reproduce.
 * Expected vs actual behavior.
 * Relevant logs or screenshots.
@@ -389,6 +389,6 @@ See [LICENSE](LICENSE) for the complete terms.
 
 ---
 
-**VirusAnalyzer** · > Analyze. Understand. Protect.
+**Prometeo** · > Analyze. Understand. Protect.
 
 If you find the project useful, consider giving it a ⭐ on GitHub.

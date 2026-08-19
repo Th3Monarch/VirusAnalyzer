@@ -25,7 +25,7 @@ pub fn lookup(api_key: &str, hash: &str) -> Result<VirusTotalResult, String> {
     let url = format!("{API_URL}/{hash}");
     let response = ureq::get(&url)
         .set("x-apikey", api_key)
-        .set("User-Agent", "VirusAnalyzer/2.0")
+        .set("User-Agent", "Prometeo/2.0")
         .timeout(REQUEST_TIMEOUT)
         .call();
 

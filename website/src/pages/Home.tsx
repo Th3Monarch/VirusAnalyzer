@@ -104,8 +104,8 @@ const steps: Step[] = [
     icon: ScanSearch,
     title: { en: "Analyze", es: "Analiza" },
     text: {
-      en: "VirusAnalyzer performs a static analysis: type, entropy, PE structure, imports and strings.",
-      es: "VirusAnalyzer realiza un análisis estático: tipo, entropía, estructura PE, imports y cadenas.",
+      en: "Prometeo performs a static analysis: type, entropy, PE structure, imports and strings.",
+      es: "Prometeo realiza un análisis estático: tipo, entropía, estructura PE, imports y cadenas.",
     },
   },
   {

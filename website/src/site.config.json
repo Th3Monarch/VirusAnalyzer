@@ -1,10 +1,10 @@
 {
-  "appName": "VirusAnalyzer",
+  "appName": "Prometeo",
   "tagline": "Analyze. Understand. Protect.",
-  "description": "Cross-platform malware analysis and threat assessment tool.",
-  "descriptionEs": "Herramienta de análisis de malware y evaluación de amenazas multiplataforma.",
+  "description": "Open-source malware analysis and threat assessment tool.",
+  "descriptionEs": "Herramienta de código abierto para análisis de malware y evaluación de amenazas.",
   "fallbackVersion": "2.0.0",
-  "siteUrl": "https://virusanalyzer.is-a.dev",
+  "siteUrl": "https://prometheus.is-a.dev",
   "githubOwner": "Th3Monarch",
   "githubRepository": "VirusAnalyzer",
   "discordUrl": "https://discord.gg/GHyJXQffaW"

@@ -31,8 +31,8 @@ const cards: Card[] = [
   {
     icon: FileSearch,
     title: {
-      en: "What VirusAnalyzer analyzes",
-      es: "Qué analiza VirusAnalyzer",
+      en: "What Prometeo analyzes",
+      es: "Qué analiza Prometeo",
     },
     text: {
       en: "Files and folders selected by the user: file type, entropy, PE structure, imports, exports, strings and hashes. All checks are static — nothing inside the file is executed.",
@@ -46,8 +46,8 @@ const cards: Card[] = [
       es: "Lo que NO hace",
     },
     text: {
-      en: "VirusAnalyzer does not provide real-time protection, automatic blocking, sandboxing, dynamic analysis or network behavior analysis. It analyzes on demand and never runs the file it is inspecting.",
-      es: "VirusAnalyzer no ofrece protección en tiempo real, bloqueo automático, sandboxing, análisis dinámico ni análisis de comportamiento de red. Analiza bajo demanda y nunca ejecuta el archivo que está inspeccionando.",
+      en: "Prometeo does not provide real-time protection, automatic blocking, sandboxing, dynamic analysis or network behavior analysis. It analyzes on demand and never runs the file it is inspecting.",
+      es: "Prometeo no ofrece protección en tiempo real, bloqueo automático, sandboxing, análisis dinámico ni análisis de comportamiento de red. Analiza bajo demanda y nunca ejecuta el archivo que está inspeccionando.",
     },
   },
   {

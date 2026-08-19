@@ -19,7 +19,7 @@ if ($version -ne $confVersion) {
 $productName = [string]$tauriConf.productName
 $mainBinary = if ([string]::IsNullOrWhiteSpace([string]$tauriConf.mainBinaryName)) { $productName } else { [string]$tauriConf.mainBinaryName }
 
-$base = "VirusAnalyzer-$version"
+$base = "Prometeo-$version"
 $dist = Join-Path $root "dist"
 $exeSource = Join-Path $root "src-tauri\target\release\$mainBinary.exe"
 $nsisDir = Join-Path $root "src-tauri\target\release\bundle\nsis"

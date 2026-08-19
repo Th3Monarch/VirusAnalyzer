@@ -138,7 +138,7 @@ function buildDoc(lang: Lang, app: string): DocSection[] {
               {L("Portable:", "Portable:")}
             </span>{" "}
             {L("extract the ZIP anywhere (a USB drive, a folder) and run ", "extrae el ZIP donde quieras (un USB, una carpeta) y ejecuta ")}
-            <span className="font-mono text-zinc-300">VirusAnalyzer.exe</span>{" "}
+            <span className="font-mono text-zinc-300">Prometeo.exe</span>{" "}
             {L(
               "directly. No installation or registry changes are made.",
               "directamente. No se realizan instalaciones ni cambios en el registro.",
@@ -222,7 +222,7 @@ function buildDoc(lang: Lang, app: string): DocSection[] {
             )}
           </p>
           <p>{L("Example verification command:", "Ejemplo de comando de verificación:")}</p>
-          <Code>{`certutil -hashfile VirusAnalyzer-2.0.0-Setup.exe SHA256`}</Code>
+          <Code>{`certutil -hashfile Prometeo-2.0.0-Setup.exe SHA256`}</Code>
         </>
       ),
     },
@@ -359,8 +359,8 @@ function buildDoc(lang: Lang, app: string): DocSection[] {
           <Bullet>
             <span className="font-semibold text-zinc-200">
               {L(
-                "“Analyze with VirusAnalyzer” is missing from the context menu:",
-                "Falta “Analizar con VirusAnalyzer” en el menú contextual:",
+                "“Analyze with Prometeo” is missing from the context menu:",
+                "Falta “Analizar con Prometeo” en el menú contextual:",
               )}
             </span>{" "}
             {L(

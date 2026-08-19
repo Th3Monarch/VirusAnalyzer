@@ -74,7 +74,7 @@ export function Sidebar() {
         </div>
         <div className="min-w-0">
           <p className="truncate text-sm font-bold tracking-tight text-ink">
-            VirusAnalyzer <span className="text-accent">2.0</span>
+            Prometeo <span className="text-accent">2.0</span>
           </p>
           <p className="truncate text-[10px] uppercase tracking-widest text-muted">
             {t("app.tagline")}

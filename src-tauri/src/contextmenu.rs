@@ -1,18 +1,20 @@
 //! Menú contextual de Windows (integración con el Explorador).
 //!
-//! Registra «Analizar con VirusAnalyzer» en
-//! `HKCU\Software\Classes\*\shell\VirusAnalyzer` para que el botón derecho
+//! Registra «Analizar con Prometeo» en
+//! `HKCU\Software\Classes\*\shell\Prometeo` para que el botón derecho
 //! sobre un archivo o carpeta permita abrir el análisis directamente.
 //!
 //! - Solo afecta al usuario actual (sin privilegios de administrador).
 //! - Se usa `reg.exe` (binario del sistema) sin pasar por un shell, por lo que
 //!   no hay expansión de `%1`: el literal se guarda tal cual y lo expande el
 //!   Explorador al hacer clic.
+//!
+
 
 use std::process::Command;
 
 /// Clave del registro. El `*` cubre archivos y carpetas.
-const SHELL_KEY: &str = r"HKCU\Software\Classes\*\shell\VirusAnalyzer";
+const SHELL_KEY: &str = r"HKCU\Software\Classes\*\shell\Prometeo";
 
 fn reg(args: &[&str]) -> Result<(), String> {
     let output = Command::new("reg.exe")

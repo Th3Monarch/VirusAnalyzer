@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "VirusAnalyzer",
+  "productName": "Prometeo",
   "version": "2.0.0",
-  "mainBinaryName": "VirusAnalyzer",
-  "identifier": "com.virusanalyzer.desktop",
+  "mainBinaryName": "Prometeo",
+  "identifier": "com.prometeo.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "title": "VirusAnalyzer 2.0",
+        "title": "Prometeo 2.0",
         "width": 1280,
         "height": 800,
         "minWidth": 960,
@@ -37,7 +37,7 @@
   "bundle": {
     "active": true,
     "targets": ["nsis", "dmg", "deb", "appimage"],
-    "publisher": "VirusAnalyzer",
+    "publisher": "Prometeo",
     "category": "Utility",
     "icon": [
       "icons/32x32.png",

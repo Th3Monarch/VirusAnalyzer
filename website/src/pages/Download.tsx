@@ -267,7 +267,7 @@ export function Download() {
               {t("download.verifyDesc")}
             </p>
             <pre className="mt-4 overflow-x-auto rounded-lg border border-line bg-night p-4 font-mono text-xs leading-relaxed text-zinc-300">
-              certutil -hashfile VirusAnalyzer-{version}-Setup.exe SHA256
+              certutil -hashfile Prometeo-{version}-Setup.exe SHA256
             </pre>
 
             {bundle.checksums.length > 0 ? (

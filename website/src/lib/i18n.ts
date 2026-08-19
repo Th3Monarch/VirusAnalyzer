@@ -125,51 +125,51 @@ export const translations: Record<Lang, Dictionary> = {
       description:
         "Cross-platform malware analysis and threat assessment tool (Windows, macOS, Linux). Static analysis, explainable heuristics and hash-only reputation checks.",
       disclaimer:
-        "VirusAnalyzer is an open-source analysis and threat assessment tool. It is not a replacement for a professional endpoint security solution.",
+        "Prometeo is an open-source analysis and threat assessment tool. It is not a replacement for a professional endpoint security solution.",
       copyright: "© {year} {app}. Analyze. Understand. Protect.",
     },
     seo: {
       home: {
-        title: "VirusAnalyzer — Cross-Platform Malware Analysis Tool",
+        title: "Prometeo — Cross-Platform Malware Analysis Tool",
         description:
           "Analyze suspicious files with static analysis, explainable heuristic scoring and optional VirusTotal reputation checks on Windows, macOS and Linux.",
       },
       download: {
-        title: "Download — VirusAnalyzer",
+        title: "Download — Prometeo",
         description:
-          "Download VirusAnalyzer for Windows, macOS and Linux. Verify your download with SHA-256 checksums.",
+          "Download Prometeo for Windows, macOS and Linux. Verify your download with SHA-256 checksums.",
       },
       features: {
-        title: "Features — VirusAnalyzer",
+        title: "Features — Prometeo",
         description:
           "Static analysis, threat assessment, hash analysis and optional VirusTotal reputation checks for Windows, macOS and Linux.",
       },
       security: {
-        title: "Security — VirusAnalyzer",
+        title: "Security — Prometeo",
         description:
-          "How VirusAnalyzer handles privacy, execution, network access, terminal access and download verification.",
+          "How Prometeo handles privacy, execution, network access, terminal access and download verification.",
       },
       documentation: {
-        title: "Documentation — VirusAnalyzer",
+        title: "Documentation — Prometeo",
         description:
-          "Documentation for VirusAnalyzer: installation, first analysis, threat scores, VirusTotal, quarantine and more.",
+          "Documentation for Prometeo: installation, first analysis, threat scores, VirusTotal, quarantine and more.",
       },
       faq: {
-        title: "FAQ — VirusAnalyzer",
+        title: "FAQ — Prometeo",
         description:
-          "Frequently asked questions about VirusAnalyzer: execution, privacy, VirusTotal, verification and supported platforms.",
+          "Frequently asked questions about Prometeo: execution, privacy, VirusTotal, verification and supported platforms.",
       },
       about: {
-        title: "About — VirusAnalyzer",
+        title: "About — Prometeo",
         description:
-          "About VirusAnalyzer: a cross-platform tool for static malware analysis, built for learning, research and defensive security.",
+          "About Prometeo: a cross-platform tool for static malware analysis, built for learning, research and defensive security.",
       },
       changelog: {
-        title: "Changelog — VirusAnalyzer",
-        description: "Release history for VirusAnalyzer.",
+        title: "Changelog — Prometeo",
+        description: "Release history for Prometeo.",
       },
       notFound: {
-        title: "Page not found — VirusAnalyzer",
+        title: "Page not found — Prometeo",
         description: "The page you are looking for does not exist.",
       },
     },
@@ -266,51 +266,51 @@ export const translations: Record<Lang, Dictionary> = {
       description:
         "Herramienta de análisis de malware y evaluación de amenazas multiplataforma (Windows, macOS, Linux). Análisis estático, heurísticas explicables y comprobaciones de reputación solo por hash.",
       disclaimer:
-        "VirusAnalyzer es una herramienta open-source de análisis y evaluación de amenazas. No sustituye a una solución profesional de seguridad de endpoints.",
+        "Prometeo es una herramienta open-source de análisis y evaluación de amenazas. No sustituye a una solución profesional de seguridad de endpoints.",
       copyright: "© {year} {app}. Analiza. Entiende. Protege.",
     },
     seo: {
       home: {
-        title: "VirusAnalyzer — Herramienta de análisis de malware multiplataforma",
+        title: "Prometeo — Herramienta de análisis de malware multiplataforma",
         description:
           "Analiza archivos sospechosos con análisis estático, puntuación heurística explicable y comprobaciones opcionales de reputación en VirusTotal para Windows, macOS y Linux.",
       },
       download: {
-        title: "Descargar — VirusAnalyzer",
+        title: "Descargar — Prometeo",
         description:
-          "Descarga VirusAnalyzer para Windows, macOS y Linux. Verifica tu descarga con los checksums SHA-256.",
+          "Descarga Prometeo para Windows, macOS y Linux. Verifica tu descarga con los checksums SHA-256.",
       },
       features: {
-        title: "Características — VirusAnalyzer",
+        title: "Características — Prometeo",
         description:
           "Análisis estático, evaluación de amenazas, análisis de hashes y comprobaciones opcionales de reputación en VirusTotal para Windows, macOS y Linux.",
       },
       security: {
-        title: "Seguridad — VirusAnalyzer",
+        title: "Seguridad — Prometeo",
         description:
-          "Cómo gestiona VirusAnalyzer la privacidad, la ejecución, el acceso a red, el acceso al terminal y la verificación de descargas.",
+          "Cómo gestiona Prometeo la privacidad, la ejecución, el acceso a red, el acceso al terminal y la verificación de descargas.",
       },
       documentation: {
-        title: "Documentación — VirusAnalyzer",
+        title: "Documentación — Prometeo",
         description:
-          "Documentación de VirusAnalyzer: instalación, primer análisis, puntuaciones de amenaza, VirusTotal, cuarentena y más.",
+          "Documentación de Prometeo: instalación, primer análisis, puntuaciones de amenaza, VirusTotal, cuarentena y más.",
       },
       faq: {
-        title: "FAQ — VirusAnalyzer",
+        title: "FAQ — Prometeo",
         description:
-          "Preguntas frecuentes sobre VirusAnalyzer: ejecución, privacidad, VirusTotal, verificación y plataformas compatibles.",
+          "Preguntas frecuentes sobre Prometeo: ejecución, privacidad, VirusTotal, verificación y plataformas compatibles.",
       },
       about: {
-        title: "Acerca de — VirusAnalyzer",
+        title: "Acerca de — Prometeo",
         description:
-          "Acerca de VirusAnalyzer: una herramienta multiplataforma de análisis estático de malware, creada para el aprendizaje, la investigación y la seguridad defensiva.",
+          "Acerca de Prometeo: una herramienta multiplataforma de análisis estático de malware, creada para el aprendizaje, la investigación y la seguridad defensiva.",
       },
       changelog: {
-        title: "Historial de cambios — VirusAnalyzer",
-        description: "Historial de versiones de VirusAnalyzer.",
+        title: "Historial de cambios — Prometeo",
+        description: "Historial de versiones de Prometeo.",
       },
       notFound: {
-        title: "Página no encontrada — VirusAnalyzer",
+        title: "Página no encontrada — Prometeo",
         description: "La página que buscas no existe.",
       },
     },
