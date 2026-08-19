@@ -8,8 +8,6 @@
 //! - Se usa `reg.exe` (binario del sistema) sin pasar por un shell, por lo que
 //!   no hay expansión de `%1`: el literal se guarda tal cual y lo expande el
 //!   Explorador al hacer clic.
-//!
-
 
 use std::process::Command;
 

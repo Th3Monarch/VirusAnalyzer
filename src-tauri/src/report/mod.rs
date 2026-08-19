@@ -141,10 +141,7 @@ pub fn render_file_html(r: &ScanResult) -> String {
     }
     body.push_str("</ol>\n</section>\n");
 
-    render_document(
-        &format!("Prometeo report \u{2014} {}", r.file_name),
-        &body,
-    )
+    render_document(&format!("Prometeo report \u{2014} {}", r.file_name), &body)
 }
 
 fn render_assessment_html(a: &AiAssessment) -> String {
