@@ -1,8 +1,8 @@
 {
   "appName": "VirusAnalyzer",
   "tagline": "Analyze. Understand. Protect.",
-  "description": "Windows malware analysis and threat assessment tool.",
-  "descriptionEs": "Herramienta de análisis de malware y evaluación de amenazas para Windows.",
+  "description": "Cross-platform malware analysis and threat assessment tool.",
+  "descriptionEs": "Herramienta de análisis de malware y evaluación de amenazas multiplataforma.",
   "fallbackVersion": "2.0.0",
   "siteUrl": "https://virusanalyzer.is-a.dev",
   "githubOwner": "Th3Monarch",
