@@ -104,7 +104,7 @@ export function Download() {
   const portable = bundle?.downloads.find((asset) => asset.kind === "portable");
 
   const releaseUnavailable =
-    release.status === "ready" && bundle === null;
+    release.status === "ready" && (!bundle || bundle.downloads.length === 0);
 
   return (
     <>

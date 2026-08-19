@@ -12,6 +12,7 @@ export interface Release {
   body: string | null;
   assets: ReleaseAsset[];
   prerelease: boolean;
+  draft: boolean;
 }
 
 export type DownloadKind = "setup" | "portable" | "executable";
@@ -154,9 +155,23 @@ export async function getLatestDownloadBundle(
   owner: string,
   repo: string,
 ): Promise<DownloadBundle | null> {
-  const release = await fetchLatestRelease(owner, repo);
-  if (!release) return null;
-  return buildDownloadBundle(release);
+  const latest = await fetchLatestRelease(owner, repo);
+  if (latest && latest.assets.some((a) => !CHECKSUM_RE.test(a.name))) {
+    return buildDownloadBundle(latest);
+  }
+
+  const recent = await fetchRecentReleases(owner, repo, 10);
+  if (recent) {
+    for (const release of recent) {
+      if (release.prerelease || release.draft) continue;
+      if (release.assets.some((a) => !CHECKSUM_RE.test(a.name))) {
+        return buildDownloadBundle(release);
+      }
+    }
+  }
+
+  if (latest) return buildDownloadBundle(latest);
+  return null;
 }
 
 let cachedBundle: Promise<DownloadBundle | null> | null = null;
