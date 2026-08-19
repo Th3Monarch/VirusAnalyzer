@@ -19,6 +19,7 @@ export type DownloadKind = "setup" | "portable" | "executable" | "deb" | "appima
 
 export interface DownloadAsset {
   name: string;
+  displayName: string;
   url: string;
   size: number;
   kind: DownloadKind;
@@ -59,24 +60,52 @@ function isExecutable(name: string): boolean {
   return EXECUTABLE_RE.test(name) && !isSetup(name) && !isPortable(name);
 }
 
+function detectArch(name: string): "x64" | "aarch64" | null {
+  if (/aarch64|arm64/i.test(name)) return "aarch64";
+  if (/x64|amd64|x86_64/i.test(name)) return "x64";
+  return null;
+}
+
+function friendlyName(asset: ReleaseAsset, kind: DownloadKind): string {
+  const arch = detectArch(asset.name);
+  const archLabel = arch === "aarch64" ? " (ARM64)" : arch === "x64" ? " (x64)" : "";
+  switch (kind) {
+    case "setup":
+      return `Installer (.exe)${archLabel}`;
+    case "portable":
+      return `Portable (.zip)${archLabel}`;
+    case "deb":
+      return `Debian/Ubuntu (.deb)${archLabel}`;
+    case "appimage":
+      return `AppImage (universal)${archLabel}`;
+    case "dmg": {
+      if (arch === "aarch64") return "macOS (Apple Silicon)";
+      if (arch === "x64") return "macOS (Intel)";
+      return `macOS (.dmg)${archLabel}`;
+    }
+    default:
+      return asset.name;
+  }
+}
+
 export function classifyAsset(asset: ReleaseAsset): DownloadAsset | null {
   if (isSetup(asset.name)) {
-    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "setup" };
+    return { name: asset.name, displayName: friendlyName(asset, "setup"), url: asset.browser_download_url, size: asset.size, kind: "setup" };
   }
   if (isPortable(asset.name)) {
-    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "portable" };
+    return { name: asset.name, displayName: friendlyName(asset, "portable"), url: asset.browser_download_url, size: asset.size, kind: "portable" };
   }
   if (isExecutable(asset.name)) {
-    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "executable" };
+    return { name: asset.name, displayName: friendlyName(asset, "executable"), url: asset.browser_download_url, size: asset.size, kind: "executable" };
   }
   if (DEB_RE.test(asset.name)) {
-    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "deb" };
+    return { name: asset.name, displayName: friendlyName(asset, "deb"), url: asset.browser_download_url, size: asset.size, kind: "deb" };
   }
   if (APPIMAGE_RE.test(asset.name)) {
-    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "appimage" };
+    return { name: asset.name, displayName: friendlyName(asset, "appimage"), url: asset.browser_download_url, size: asset.size, kind: "appimage" };
   }
   if (DMG_RE.test(asset.name)) {
-    return { name: asset.name, url: asset.browser_download_url, size: asset.size, kind: "dmg" };
+    return { name: asset.name, displayName: friendlyName(asset, "dmg"), url: asset.browser_download_url, size: asset.size, kind: "dmg" };
   }
   return null;
 }

@@ -73,9 +73,9 @@ function DownloadCard({
           {t("download.recommended")}
         </span>
       )}
-      <h3 className="text-base font-semibold text-white">{asset.name}</h3>
+      <h3 className="text-base font-semibold text-white">{asset.displayName}</h3>
       <p className="mt-1 font-mono text-xs text-zinc-500">
-        {formatBytes(asset.size)}
+        {asset.name} · {formatBytes(asset.size)}
       </p>
       <a
         href={asset.url}
