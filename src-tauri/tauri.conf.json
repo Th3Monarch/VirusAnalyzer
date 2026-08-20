@@ -30,7 +30,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJFMTlDRkIxQ0RENjE0QkEKUldTNkZOYk5zYzhaTGh4Z2JGWDJwQ0FSNjVWVGdUazdFeTNETTVkaUtyVlA1Y2haa1B0cDR3aXYK",
       "endpoints": [
-        "https://github.com/th3monarch/VirusAnalyzer/releases/latest/download/latest.json"
+        "https://github.com/Th3Monarch/Prometheus/releases/latest/download/latest.json"
       ]
     }
   },

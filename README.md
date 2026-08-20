@@ -227,8 +227,8 @@ sudo apt-get install -y \
 ### Clone and install
 
 ```bash
-git clone https://github.com/th3monarch/VirusAnalyzer.git
-cd Prometeo
+git clone https://github.com/Th3Monarch/Prometheus.git
+cd Prometheus
 npm install
 ```
 
