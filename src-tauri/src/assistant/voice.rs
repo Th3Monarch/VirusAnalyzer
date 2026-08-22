@@ -73,7 +73,7 @@ impl KokoroProvider {
 
 #[async_trait::async_trait]
 impl TextToSpeech for KokoroProvider {
-    async fn synthesize(&self, text: &str, language: &str) -> Result<Vec<u8>, VoiceError> {
+    async fn synthesize(&self, text: &str, _language: &str) -> Result<Vec<u8>, VoiceError> {
         if !self.is_available() {
             return Err(VoiceError::SynthesisFailed(
                 "Kokoro server not available".into(),
