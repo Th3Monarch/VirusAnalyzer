@@ -1,11 +1,16 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import { AssistantPanel } from "../assistant/AssistantPanel";
+import { useAssistantKeyboard } from "../../hooks/useAssistantKeyboard";
+import { useAssistantSync } from "../../hooks/useAssistantSync";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { tauri } from "../../lib/tauri";
 
 export function Layout() {
   const navigate = useNavigate();
+  useAssistantKeyboard();
+  useAssistantSync();
 
   useEffect(() => {
     let alive = true;
@@ -33,6 +38,7 @@ export function Layout() {
           </div>
         </main>
       </div>
+      <AssistantPanel />
     </div>
   );
 }

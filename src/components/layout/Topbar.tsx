@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
-import { Languages, Moon, Sun } from "lucide-react";
+import { BotMessageSquare, Languages, Moon, ShieldAlert, Sun } from "lucide-react";
+import { useAssistant } from "../../contexts/AssistantContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useConfig } from "../../contexts/ConfigContext";
@@ -25,6 +26,7 @@ export function Topbar() {
   const { t, language, setLanguage } = useLanguage();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const { config, loaded } = useConfig();
+  const { togglePanel, isOpen, ysmelActive, fenixActive } = useAssistant();
 
   const titleKey = TITLES[location.pathname] ?? "nav.dashboard";
   const hasVtKey = Boolean(config.virustotalApiKey);
@@ -55,6 +57,35 @@ export function Topbar() {
           <span className={`size-1.5 rounded-full ${hasVtKey ? "bg-good" : "bg-muted"}`} />
           VirusTotal
         </span>
+
+        {/* Protocol badges */}
+        {ysmelActive && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-warn/30 bg-warn/10 px-2.5 py-1 text-[11px] font-medium text-warn">
+            <ShieldAlert className="size-3" />
+            Ysmel
+          </span>
+        )}
+        {fenixActive && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-critical/30 bg-critical/10 px-2.5 py-1 text-[11px] font-medium text-critical">
+            <ShieldAlert className="size-3" />
+            Fenix
+          </span>
+        )}
+
+        <button
+          type="button"
+          onClick={togglePanel}
+          aria-label="Toggle AI Assistant"
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 ${
+            isOpen
+              ? "border-accent/40 bg-accent/10 text-accent"
+              : "border-line bg-surface-2 text-ink hover:border-muted/50"
+          }`}
+          title="AI Companion (Ctrl+Shift+A)"
+        >
+          <BotMessageSquare className="size-3.5" />
+          AI
+        </button>
 
         <button
           type="button"

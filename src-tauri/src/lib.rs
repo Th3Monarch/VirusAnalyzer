@@ -7,8 +7,10 @@
 // Silencia los mensajes informativos del linker MSVC (bibliotecas .dll.lib).
 #![allow(linker_messages)]
 
+mod ai;
 mod analyzer;
 mod assessment;
+mod assistant;
 mod config;
 #[cfg(target_os = "windows")]
 mod contextmenu;
@@ -36,6 +38,7 @@ use tauri::Emitter;
 use tauri::Manager;
 use uuid::Uuid;
 
+use assistant::commands::AssistantState;
 use config::{AppConfig, ConfigManager};
 use models::{AppInfo, SystemInfo};
 use scanner::history::{ActiveScan, ScanStore};
@@ -482,6 +485,31 @@ pub fn run() {
             // Ruta recibida al lanzarse desde el menú contextual (se consume
             // una sola vez con `take_launch_path`).
             app.manage(Arc::new(Mutex::new(std::env::args().nth(1))));
+            // Estado del assistant AI companion.
+            let ysmel_active = Arc::new(AtomicBool::new(false));
+            let fenix_active = Arc::new(AtomicBool::new(false));
+            let provider = crate::ai::manager::ProviderManager::new();
+            let assistant = Arc::new(AssistantState::new(
+                ysmel_active.clone(),
+                fenix_active.clone(),
+                provider,
+            ));
+            assistant.set_app_handle(app.handle().clone());
+
+            // Inicializar provider Ollama desde config en background.
+            // Si Ollama está habilitado y disponible, se conecta automáticamente.
+            let assistant_clone = Arc::clone(&assistant);
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let config = match crate::config::ConfigManager::load(&app_handle) {
+                    Ok(m) => m.config,
+                    Err(_) => return,
+                };
+                let mut mgr = assistant_clone.provider.write().await;
+                mgr.init_from_config(&config).await;
+            });
+
+            app.manage(assistant);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -511,7 +539,25 @@ pub fn run() {
             install_context_menu,
             uninstall_context_menu,
             is_context_menu_installed,
-            take_launch_path
+            take_launch_path,
+            assistant::commands::assistant_send_message,
+            assistant::commands::assistant_get_history,
+            assistant::commands::assistant_clear_session,
+            assistant::commands::assistant_get_context,
+            assistant::commands::assistant_set_context,
+            assistant::commands::assistant_get_provider_info,
+            assistant::commands::assistant_check_provider_health,
+            assistant::commands::assistant_cancel_pending,
+            assistant::commands::assistant_set_provider,
+            assistant::commands::assistant_update_ollama,
+            assistant::commands::assistant_test_ollama,
+            assistant::commands::assistant_set_silent_mode,
+            assistant::commands::assistant_get_silent_mode,
+            assistant::commands::assistant_get_voice_state,
+            assistant::commands::assistant_update_voice_config,
+            assistant::commands::assistant_synthesize,
+            assistant::commands::assistant_transcribe,
+            assistant::commands::assistant_voice_health,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -145,3 +145,13 @@
     background-color: color-mix(in srgb, var(--va-muted) 55%, transparent);
   }
 }
+
+/* Assistant typing animation */
+.assistant-typing-dot {
+  animation: assistant-bounce 1.2s infinite ease-in-out;
+}
+
+@keyframes assistant-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}

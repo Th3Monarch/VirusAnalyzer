@@ -12,7 +12,7 @@ export interface SiteConfig {
   discordUrl: string;
 }
 
-export const basePath = "/Prometheus/";
+export const basePath = "/prometeo/";
 export const basename = basePath.replace(/\/+$/, "");
 
 export const site: SiteConfig = {

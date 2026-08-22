@@ -260,6 +260,26 @@ export interface AppConfig {
   contextMenuEnabled: boolean;
   scan: ScanPreferences;
   storage: StoragePreferences;
+  ollama: OllamaPreferences;
+  voice: VoicePreferences;
+}
+
+export interface OllamaPreferences {
+  url: string;
+  model: string;
+  enabled: boolean;
+  temperature: number;
+  maxTokens: number;
+}
+
+export interface VoicePreferences {
+  speechRate: number;
+  volume: number;
+  ttsProvider: string;
+  sttProvider: string;
+  ttsUrl: string;
+  sttUrl: string;
+  language: string;
 }
 
 export interface SystemInfo {

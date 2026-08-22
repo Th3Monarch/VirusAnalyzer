@@ -72,6 +72,68 @@ impl Default for StoragePreferences {
     }
 }
 
+/// Preferencias de Ollama (AI provider local).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct OllamaPreferences {
+    /// URL base de Ollama (por defecto http://localhost:11434).
+    pub url: String,
+    /// Modelo a usar (por defecto llama3.2).
+    pub model: String,
+    /// Si la integración Ollama está habilitada (false = usa stub).
+    pub enabled: bool,
+    /// Temperatura de muestreo (0.0 = determinista, 1.0 = creativo).
+    pub temperature: f32,
+    /// Número máximo de tokens a generar en la respuesta.
+    pub max_tokens: u32,
+}
+
+impl Default for OllamaPreferences {
+    fn default() -> Self {
+        Self {
+            url: "http://localhost:11434".into(),
+            model: "llama3.2".into(),
+            enabled: false,
+            temperature: 0.3,
+            max_tokens: 1024,
+        }
+    }
+}
+
+/// Configuración de voz del assistant (persistida en AppConfig).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+pub struct VoicePreferences {
+    /// Velocidad de habla del TTS (0.5–2.0, default 1.0).
+    pub speech_rate: f32,
+    /// Volumen del TTS (0.0–1.0, default 1.0).
+    pub volume: f32,
+    /// Proveedor TTS seleccionado ("kokoro" | "web" | "none").
+    pub tts_provider: String,
+    /// Proveedor STT seleccionado ("whisper" | "web" | "none").
+    pub stt_provider: String,
+    /// URL del servidor Kokoro TTS.
+    pub tts_url: String,
+    /// URL del servidor Whisper STT.
+    pub stt_url: String,
+    /// Idioma de voz (default: igual al idioma de la app).
+    pub language: String,
+}
+
+impl Default for VoicePreferences {
+    fn default() -> Self {
+        Self {
+            speech_rate: 1.0,
+            volume: 1.0,
+            tts_provider: "web".into(),
+            stt_provider: "web".into(),
+            tts_url: "http://localhost:8880".into(),
+            stt_url: "http://localhost:8080".into(),
+            language: "es".into(),
+        }
+    }
+}
+
 /// Configuración completa de la aplicación.
 ///
 /// Todos los campos tienen `#[serde(default)]` para que archivos antiguos
@@ -93,6 +155,10 @@ pub struct AppConfig {
     pub context_menu_enabled: bool,
     pub scan: ScanPreferences,
     pub storage: StoragePreferences,
+    /// Configuración del provider AI local (Ollama).
+    pub ollama: OllamaPreferences,
+    /// Configuración de voz del assistant.
+    pub voice: VoicePreferences,
 }
 
 impl Default for AppConfig {
@@ -106,6 +172,8 @@ impl Default for AppConfig {
             context_menu_enabled: false,
             scan: ScanPreferences::default(),
             storage: StoragePreferences::default(),
+            ollama: OllamaPreferences::default(),
+            voice: VoicePreferences::default(),
         }
     }
 }

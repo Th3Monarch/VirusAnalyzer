@@ -18,6 +18,14 @@ import type {
   ThreatLevel,
   VirusTotalResult,
 } from "../types";
+import type {
+  ApplicationContext,
+  AssistantMessage,
+  AssistantResponse,
+  ModelInfo,
+  OllamaTestResult,
+} from "../types/assistant";
+import type { VoiceConfig, VoiceHealth, VoiceRecordingState } from "../types/voice";
 
 export interface TauriClient {
   getConfig(): Promise<AppConfig>;
@@ -46,6 +54,26 @@ export interface TauriClient {
   uninstallContextMenu(): Promise<boolean>;
   isContextMenuInstalled(): Promise<boolean>;
   takeLaunchPath(): Promise<string | null>;
+
+  // Assistant
+  assistantSendMessage(message: string, confirmed?: boolean, pendingId?: string): Promise<AssistantResponse>;
+  assistantGetHistory(): Promise<AssistantMessage[]>;
+  assistantClearSession(): Promise<void>;
+  assistantGetContext(): Promise<ApplicationContext>;
+  assistantSetContext(key: string, value?: string): Promise<void>;
+  assistantGetProviderInfo(): Promise<ModelInfo>;
+  assistantCheckProviderHealth(): Promise<boolean>;
+  assistantCancelPending(): Promise<void>;
+  assistantSetSilentMode(enabled: boolean): Promise<boolean>;
+  assistantGetSilentMode(): Promise<boolean>;
+  assistantSetProvider(providerType: string): Promise<ModelInfo>;
+  assistantUpdateOllama(url: string, model: string, enabled: boolean, temperature?: number, maxTokens?: number): Promise<ModelInfo>;
+  assistantTestOllama(url: string): Promise<OllamaTestResult>;
+  assistantGetVoiceState(): Promise<VoiceRecordingState>;
+  assistantUpdateVoiceConfig(config: VoiceConfig): Promise<VoiceConfig>;
+  assistantSynthesize(text: string): Promise<number[]>;
+  assistantTranscribe(audio: number[]): Promise<string>;
+  assistantVoiceHealth(): Promise<VoiceHealth>;
 }
 
 export const tauri: TauriClient = {
@@ -81,4 +109,34 @@ export const tauri: TauriClient = {
   uninstallContextMenu: () => invoke<boolean>("uninstall_context_menu"),
   isContextMenuInstalled: () => invoke<boolean>("is_context_menu_installed"),
   takeLaunchPath: () => invoke<string | null>("take_launch_path"),
+
+  // Assistant
+  assistantSendMessage: (message: string, confirmed?: boolean, pendingId?: string) =>
+    invoke<AssistantResponse>("assistant_send_message", { message, confirmed, pendingId }),
+  assistantGetHistory: () => invoke<AssistantMessage[]>("assistant_get_history"),
+  assistantClearSession: () => invoke<void>("assistant_clear_session"),
+  assistantGetContext: () => invoke<ApplicationContext>("assistant_get_context"),
+  assistantSetContext: (key, value) =>
+    invoke<void>("assistant_set_context", { key, value }),
+  assistantGetProviderInfo: () => invoke<ModelInfo>("assistant_get_provider_info"),
+  assistantCheckProviderHealth: () => invoke<boolean>("assistant_check_provider_health"),
+  assistantCancelPending: () => invoke<void>("assistant_cancel_pending"),
+  assistantSetSilentMode: (enabled) => invoke<boolean>("assistant_set_silent_mode", { enabled }),
+  assistantGetSilentMode: () => invoke<boolean>("assistant_get_silent_mode"),
+  assistantSetProvider: (providerType) =>
+    invoke<ModelInfo>("assistant_set_provider", { providerType }),
+  assistantUpdateOllama: (url, model, enabled, temperature?, maxTokens?) =>
+    invoke<ModelInfo>("assistant_update_ollama", { url, model, enabled, temperature: temperature ?? null, maxTokens: maxTokens ?? null }),
+  assistantTestOllama: (url) =>
+    invoke<OllamaTestResult>("assistant_test_ollama", { url }),
+  assistantGetVoiceState: () =>
+    invoke<VoiceRecordingState>("assistant_get_voice_state"),
+  assistantUpdateVoiceConfig: (config) =>
+    invoke<VoiceConfig>("assistant_update_voice_config", { config }),
+  assistantSynthesize: (text) =>
+    invoke<number[]>("assistant_synthesize", { text }),
+  assistantTranscribe: (audio) =>
+    invoke<string>("assistant_transcribe", { audio }),
+  assistantVoiceHealth: () =>
+    invoke<VoiceHealth>("assistant_voice_health"),
 };

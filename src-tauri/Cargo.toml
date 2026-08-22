@@ -38,3 +38,8 @@ infer = "0.19"
 # HTTP (FASE 5): consulta de reputación por hash a VirusTotal.
 ureq = "2"
 
+# AI Companion (async trait + HTTP for Ollama)
+async-trait = "0.1"
+reqwest = { version = "0.12", features = ["json", "multipart"] }
+tokio = { version = "1", features = ["sync", "macros", "rt"] }
+
