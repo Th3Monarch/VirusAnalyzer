@@ -104,9 +104,7 @@ impl AssistantState {
         if let Ok(mut confs) = self.pending_confirmations.lock() {
             let now = Utc::now();
             confs.retain(|c| {
-                now.signed_duration_since(c.created_at)
-                    .num_seconds()
-                    < CONFIRMATION_EXPIRY_SECS
+                now.signed_duration_since(c.created_at).num_seconds() < CONFIRMATION_EXPIRY_SECS
             });
         }
     }
@@ -234,7 +232,9 @@ pub async fn assistant_send_message(
         let ctx = state.context.lock().map_err(|_| "Context locked")?;
         ctx.clone()
     };
-    let intent = state.intent_parser.parse_with_context(&message, &context_snapshot);
+    let intent = state
+        .intent_parser
+        .parse_with_context(&message, &context_snapshot);
 
     // Resolver tool call desde el registry
     let tool_call = state.tool_executor.resolve_intent(&intent);
@@ -272,7 +272,10 @@ pub async fn assistant_send_message(
                 .map(|tc| tc.meta.clone())
                 .unwrap_or_else(ToolRegistry::conversation_meta);
 
-            let confirm_msg = format!("{}\n\n{}", meta.confirmation_msg_es, meta.confirmation_msg_en);
+            let confirm_msg = format!(
+                "{}\n\n{}",
+                meta.confirmation_msg_es, meta.confirmation_msg_en
+            );
             let new_pending_id = uuid::Uuid::new_v4().to_string();
 
             let pending = PendingConfirmation {
@@ -331,18 +334,41 @@ pub async fn assistant_send_message(
                 .map_err(|_| "Confirmations locked")?;
             confirmations.iter().find(|c| c.id == pid).cloned()
         };
-            match confirmation {
-                None => {
-                    // pending_id inválido o expirado — registrar bypass attempt
-                    {
-                        let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
-                        safety.record_bypass_attempt(&format!(
-                            "Invalid or expired pending_id: {pid}"
-                        ));
-                    }
-                    let response_text = "Confirmación no válida o expirada.\nInvalid or expired confirmation.".to_string();
+        match confirmation {
+            None => {
+                // pending_id inválido o expirado — registrar bypass attempt
+                {
+                    let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
+                    safety.record_bypass_attempt(&format!("Invalid or expired pending_id: {pid}"));
+                }
+                let response_text =
+                    "Confirmación no válida o expirada.\nInvalid or expired confirmation."
+                        .to_string();
+                let mut session = state.session.lock().map_err(|_| "Session locked")?;
+                session.add_assistant_message(&response_text, Some(intent.name().into()), false);
+                return Ok(AssistantResponse {
+                    message: response_text,
+                    intent: Some(intent),
+                    requires_confirmation: false,
+                    pending_id: None,
+                    metadata: None,
+                });
+            }
+            Some(pending) => {
+                // H1: Full intent equality — prevents stale-consent parameter swap
+                if pending.intent != intent {
+                    let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
+                    safety.record_bypass_attempt(&format!(
+                        "Intent mismatch: pending={:?}, current={:?}",
+                        pending.intent, intent
+                    ));
+                    let response_text = "La confirmación no coincide con la acción actual.\nThe confirmation doesn't match the current action.".to_string();
                     let mut session = state.session.lock().map_err(|_| "Session locked")?;
-                    session.add_assistant_message(&response_text, Some(intent.name().into()), false);
+                    session.add_assistant_message(
+                        &response_text,
+                        Some(intent.name().into()),
+                        false,
+                    );
                     return Ok(AssistantResponse {
                         message: response_text,
                         intent: Some(intent),
@@ -351,60 +377,32 @@ pub async fn assistant_send_message(
                         metadata: None,
                     });
                 }
-                Some(pending) => {
-                    // H1: Full intent equality — prevents stale-consent parameter swap
-                    if pending.intent != intent {
-                        let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
-                        safety.record_bypass_attempt(&format!(
-                            "Intent mismatch: pending={:?}, current={:?}",
-                            pending.intent, intent
-                        ));
-                        let response_text = "La confirmación no coincide con la acción actual.\nThe confirmation doesn't match the current action.".to_string();
-                        let mut session = state.session.lock().map_err(|_| "Session locked")?;
-                        session.add_assistant_message(&response_text, Some(intent.name().into()), false);
-                        return Ok(AssistantResponse {
-                            message: response_text,
-                            intent: Some(intent),
-                            requires_confirmation: false,
-                            pending_id: None,
-                            metadata: None,
-                        });
-                    }
-                    // Confirmación válida — registrar y limpiar
-                    {
-                        let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
-                        safety.record_confirmation_accepted();
-                    }
-                    {
-                        let mut confirmations = state
-                            .pending_confirmations
-                            .lock()
-                            .map_err(|_| "Confirmations locked")?;
-                        confirmations.retain(|c| c.id != pid);
-                    }
+                // Confirmación válida — registrar y limpiar
+                {
+                    let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
+                    safety.record_confirmation_accepted();
+                }
+                {
+                    let mut confirmations = state
+                        .pending_confirmations
+                        .lock()
+                        .map_err(|_| "Confirmations locked")?;
+                    confirmations.retain(|c| c.id != pid);
                 }
             }
+        }
     }
 
     // Ejecutar la tool usando el ToolExecutor como dispatcher
     // H3: Sanitize errors — never expose internal paths/details to frontend
-    let (response_text, tool_result) = execute_tool(
-        &state,
-        &scan_store,
-        &intent,
-        &tool_call,
-    )
-    .await
-    .map_err(|e| sanitize_tool_error(&e))?;
+    let (response_text, tool_result) = execute_tool(&state, &scan_store, &intent, &tool_call)
+        .await
+        .map_err(|e| sanitize_tool_error(&e))?;
 
     // Registrar respuesta del assistant
     {
         let mut session = state.session.lock().map_err(|_| "Session locked")?;
-        session.add_assistant_message(
-            &response_text,
-            Some(intent.name().into()),
-            false,
-        );
+        session.add_assistant_message(&response_text, Some(intent.name().into()), false);
     }
 
     let elapsed = start.elapsed().as_millis() as u64;
@@ -464,7 +462,9 @@ async fn execute_tool(
                     Ok((summary, Some(data)))
                 }
                 None => Ok((
-                    format!("No se encontró análisis con ID `{id}`.\nNo analysis found with ID `{id}`."),
+                    format!(
+                        "No se encontró análisis con ID `{id}`.\nNo analysis found with ID `{id}`."
+                    ),
                     None,
                 )),
             }
@@ -555,30 +555,41 @@ async fn execute_tool(
         "activate_ysmel" => {
             let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
             safety.set_ysmel(true);
-            state.ysmel_active.store(true, std::sync::atomic::Ordering::SeqCst);
+            state
+                .ysmel_active
+                .store(true, std::sync::atomic::Ordering::SeqCst);
             Ok((tc.meta.response_es.clone(), None))
         }
         "deactivate_ysmel" => {
             let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
             safety.set_ysmel(false);
-            state.ysmel_active.store(false, std::sync::atomic::Ordering::SeqCst);
+            state
+                .ysmel_active
+                .store(false, std::sync::atomic::Ordering::SeqCst);
             Ok((tc.meta.response_es.clone(), None))
         }
         "activate_fenix" => {
             let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
             safety.set_fenix(true);
-            state.fenix_active.store(true, std::sync::atomic::Ordering::SeqCst);
+            state
+                .fenix_active
+                .store(true, std::sync::atomic::Ordering::SeqCst);
             Ok((tc.meta.response_es.clone(), None))
         }
         "deactivate_fenix" => {
             let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
             safety.set_fenix(false);
-            state.fenix_active.store(false, std::sync::atomic::Ordering::SeqCst);
+            state
+                .fenix_active
+                .store(false, std::sync::atomic::Ordering::SeqCst);
             Ok((tc.meta.response_es.clone(), None))
         }
 
         // --- Catch-all ---
-        _ => Ok(("No puedo ejecutar esa acción.\nI can't perform that action.".into(), None)),
+        _ => Ok((
+            "No puedo ejecutar esa acción.\nI can't perform that action.".into(),
+            None,
+        )),
     }
 }
 
@@ -607,7 +618,10 @@ async fn execute_conversation(
         mgr.provider_ref()
     };
 
-    match provider_ref.complete(&system_prompt, &user_msg, &history_context).await {
+    match provider_ref
+        .complete(&system_prompt, &user_msg, &history_context)
+        .await
+    {
         Ok(completion) => Ok((completion.text, None)),
         Err(_) => {
             let response = generate_conversational_response(&user_msg);
@@ -620,7 +634,13 @@ async fn execute_conversation(
 fn generate_conversational_response(input: &str) -> String {
     let lower = input.to_lowercase();
 
-    if lower.contains("hola") || lower.contains("hello") || lower.contains("hi") || lower.contains("hey") || lower.contains("buenos") || lower.contains("buenas") {
+    if lower.contains("hola")
+        || lower.contains("hello")
+        || lower.contains("hi")
+        || lower.contains("hey")
+        || lower.contains("buenos")
+        || lower.contains("buenas")
+    {
         return "Hello! I'm your Prometeo security companion. I can help you analyze files, understand scan results, manage quarantine, and more. What would you like to do?".into();
     }
 
@@ -632,7 +652,11 @@ fn generate_conversational_response(input: &str) -> String {
         return "Goodbye! Stay safe. I'm here whenever you need me.".into();
     }
 
-    if lower.contains("que puedes") || lower.contains("what can you") || lower.contains("help") || lower.contains("ayuda") {
+    if lower.contains("que puedes")
+        || lower.contains("what can you")
+        || lower.contains("help")
+        || lower.contains("ayuda")
+    {
         return "I can help you with:\n- Analyzing files for threats\n- Understanding scan results\n- Managing quarantine\n- Explaining heuristic rules\n- Checking VirusTotal reputation\n- System security information\n- Activating security protocols\n\nJust ask me anything!".into();
     }
 
@@ -642,9 +666,13 @@ fn generate_conversational_response(input: &str) -> String {
 /// Resume un resultado de análisis en un mensaje legible.
 fn summarize_analysis(data: &serde_json::Value) -> String {
     let name = data["fileInfo"]["name"].as_str().unwrap_or("unknown");
-    let threat = data["assessment"]["threatLevel"].as_str().unwrap_or("unknown");
+    let threat = data["assessment"]["threatLevel"]
+        .as_str()
+        .unwrap_or("unknown");
     let score = data["assessment"]["score"].as_i64().unwrap_or(0);
-    let risk = data["assessment"]["riskLevel"].as_str().unwrap_or("unknown");
+    let risk = data["assessment"]["riskLevel"]
+        .as_str()
+        .unwrap_or("unknown");
 
     format!(
         "Análisis de `{name}`:\n  Nivel de amenaza: {threat}\n  Puntaje: {score}/100\n  Riesgo: {risk}\n\nAnalysis of `{name}`:\n  Threat level: {threat}\n  Score: {score}/100\n  Risk: {risk}"
@@ -664,9 +692,7 @@ pub fn assistant_get_history(
 
 /// Limpia la sesión de conversación.
 #[tauri::command]
-pub fn assistant_clear_session(
-    state: State<'_, Arc<AssistantState>>,
-) -> Result<(), String> {
+pub fn assistant_clear_session(state: State<'_, Arc<AssistantState>>) -> Result<(), String> {
     let mut session = state.session.lock().map_err(|_| "Session locked")?;
     session.clear();
     Ok(())
@@ -769,9 +795,7 @@ pub async fn assistant_test_ollama(
 
 /// Cancela una confirmación pendiente.
 #[tauri::command]
-pub fn assistant_cancel_pending(
-    state: State<'_, Arc<AssistantState>>,
-) -> Result<(), String> {
+pub fn assistant_cancel_pending(state: State<'_, Arc<AssistantState>>) -> Result<(), String> {
     let mut confirmations = state
         .pending_confirmations
         .lock()
@@ -788,7 +812,9 @@ pub async fn assistant_set_silent_mode(
     state: State<'_, Arc<AssistantState>>,
     enabled: bool,
 ) -> Result<bool, String> {
-    state.silent_mode.store(enabled, std::sync::atomic::Ordering::SeqCst);
+    state
+        .silent_mode
+        .store(enabled, std::sync::atomic::Ordering::SeqCst);
     Ok(enabled)
 }
 
@@ -843,10 +869,14 @@ pub async fn assistant_synthesize(
     text: String,
 ) -> Result<Vec<u8>, String> {
     if text.len() > MAX_TTS_BYTES {
-        return Err(format!("Texto demasiado largo para TTS (máximo {} bytes).", MAX_TTS_BYTES));
+        return Err(format!(
+            "Texto demasiado largo para TTS (máximo {} bytes).",
+            MAX_TTS_BYTES
+        ));
     }
     let voice = state.voice.lock().await;
-    voice.synthesize(&text)
+    voice
+        .synthesize(&text)
         .await
         .map_err(|e| format!("Error en síntesis de voz: {e}"))
 }
@@ -859,10 +889,14 @@ pub async fn assistant_transcribe(
     audio: Vec<u8>,
 ) -> Result<String, String> {
     if audio.len() > MAX_AUDIO_BYTES {
-        return Err(format!("Audio demasiado grande (máximo {} bytes).", MAX_AUDIO_BYTES));
+        return Err(format!(
+            "Audio demasiado grande (máximo {} bytes).",
+            MAX_AUDIO_BYTES
+        ));
     }
     let voice = state.voice.lock().await;
-    voice.transcribe(&audio)
+    voice
+        .transcribe(&audio)
         .await
         .map_err(|e| format!("Error en transcripción: {e}"))
 }
@@ -992,7 +1026,10 @@ mod tests {
     #[test]
     fn test_sanitize_generic_fallback() {
         let msg = sanitize_tool_error("something went wrong at /internal/path");
-        assert_eq!(msg, "Ocurrió un error al procesar la solicitud. Intente de nuevo.");
+        assert_eq!(
+            msg,
+            "Ocurrió un error al procesar la solicitud. Intente de nuevo."
+        );
         assert!(!msg.contains("/internal/path"));
     }
 

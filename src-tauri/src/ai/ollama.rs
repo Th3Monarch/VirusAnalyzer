@@ -162,7 +162,8 @@ impl AiProvider for OllamaProvider {
             // Intentar un health check antes de fallar completamente
             if !self.refresh_availability().await {
                 return Err(AiError::ConnectionFailed(
-                    "Ollama no está disponible. Verifique que el servidor esté ejecutándose.".into(),
+                    "Ollama no está disponible. Verifique que el servidor esté ejecutándose."
+                        .into(),
                 ));
             }
         }

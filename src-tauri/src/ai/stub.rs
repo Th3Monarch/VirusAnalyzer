@@ -53,7 +53,11 @@ fn generate_stub_response(input: &str) -> String {
         return "I can help you analyze files. Use the scan page to upload a file, or tell me the path and I'll guide you through the process.".into();
     }
 
-    if lower.contains("hola") || lower.contains("hello") || lower.contains("hi") || lower.contains("hey") {
+    if lower.contains("hola")
+        || lower.contains("hello")
+        || lower.contains("hi")
+        || lower.contains("hey")
+    {
         return "Hello! I'm your Prometeo assistant. I can help you with malware analysis, file scanning, quarantine management, and understanding scan results. What would you like to do?".into();
     }
 

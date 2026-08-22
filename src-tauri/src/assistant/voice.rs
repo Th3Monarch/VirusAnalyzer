@@ -216,10 +216,7 @@ impl SpeechToText for WhisperProvider {
             .await
             .map_err(|e| VoiceError::TranscriptionFailed(e.to_string()))?;
 
-        let text = body["text"]
-            .as_str()
-            .unwrap_or("")
-            .to_string();
+        let text = body["text"].as_str().unwrap_or("").to_string();
 
         Ok(text)
     }

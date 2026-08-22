@@ -17,11 +17,17 @@ pub enum Intent {
     /// Abrir la página de cuarentena.
     OpenQuarantine,
     /// Aislar un archivo en cuarentena.
-    QuarantineFile { path: String, reason: Option<String> },
+    QuarantineFile {
+        path: String,
+        reason: Option<String>,
+    },
     /// Restaurar un archivo de la cuarentena.
     RestoreFile { id: String },
     /// Generar un informe.
-    GenerateReport { scan_id: String, format: Option<String> },
+    GenerateReport {
+        scan_id: String,
+        format: Option<String>,
+    },
     /// Consultar VirusTotal.
     QueryVirusTotal { hash: String },
     /// Obtener información del sistema.
@@ -93,13 +99,26 @@ impl IntentParser {
         let lower = input.to_lowercase().trim().to_string();
 
         // --- Analizar archivo ---
-        if matches_pattern(&lower, &["analizar", "escanear", "scan", "analyze", "check"]) {
+        if matches_pattern(
+            &lower,
+            &["analizar", "escanear", "scan", "analyze", "check"],
+        ) {
             if let Some(path) = extract_path(&lower) {
                 return Intent::AnalyzeFile { path };
             }
             // Context: si hay archivo seleccionado y el usuario dice "este/this/actual"
             if let Some(ref file) = ctx.selected_file {
-                if matches_pattern(&lower, &["este", "this", "actual", "current", "seleccionado", "selected"]) {
+                if matches_pattern(
+                    &lower,
+                    &[
+                        "este",
+                        "this",
+                        "actual",
+                        "current",
+                        "seleccionado",
+                        "selected",
+                    ],
+                ) {
                     return Intent::AnalyzeFile { path: file.clone() };
                 }
             }
@@ -109,7 +128,12 @@ impl IntentParser {
         if matches_pattern(&lower, &["resultado", "result", "analysis", "análisis"]) {
             // Context: si estamos en una página con análisis visible y el usuario dice "este"
             if let Some(ref id) = ctx.current_analysis_id {
-                if matches_pattern(&lower, &["este", "this", "actual", "current", "muestra", "show", "ver", "view"]) {
+                if matches_pattern(
+                    &lower,
+                    &[
+                        "este", "this", "actual", "current", "muestra", "show", "ver", "view",
+                    ],
+                ) {
                     return Intent::GetAnalysis { id: id.clone() };
                 }
             }
@@ -140,15 +164,32 @@ impl IntentParser {
             }
             // Poner en cuarentena
             if let Some(path) = extract_path(&lower) {
-                let reason = extract_after(&lower, &["porque", "reason", "motivo", "debido a", "because"]);
+                let reason = extract_after(
+                    &lower,
+                    &["porque", "reason", "motivo", "debido a", "because"],
+                );
                 return Intent::QuarantineFile {
                     path,
-                    reason: if reason.is_empty() { None } else { Some(reason) },
+                    reason: if reason.is_empty() {
+                        None
+                    } else {
+                        Some(reason)
+                    },
                 };
             }
             // Context: si hay archivo seleccionado y dice "este"
             if let Some(ref file) = ctx.selected_file {
-                if matches_pattern(&lower, &["este", "this", "actual", "current", "seleccionado", "selected"]) {
+                if matches_pattern(
+                    &lower,
+                    &[
+                        "este",
+                        "this",
+                        "actual",
+                        "current",
+                        "seleccionado",
+                        "selected",
+                    ],
+                ) {
                     return Intent::QuarantineFile {
                         path: file.clone(),
                         reason: None,
@@ -168,39 +209,67 @@ impl IntentParser {
                 None
             };
             if let Some(id) = extract_id(&lower) {
-                return Intent::GenerateReport { scan_id: id, format };
+                return Intent::GenerateReport {
+                    scan_id: id,
+                    format,
+                };
             }
             // Context: si hay análisis visible
             if let Some(ref id) = ctx.current_analysis_id {
                 if matches_pattern(&lower, &["este", "this", "actual", "current", "del", "of"]) {
-                    return Intent::GenerateReport { scan_id: id.clone(), format };
+                    return Intent::GenerateReport {
+                        scan_id: id.clone(),
+                        format,
+                    };
                 }
             }
         }
 
         // --- VirusTotal ---
-        if matches_pattern(&lower, &["virus", "total", "reputación", "reputation", "hash"]) {
+        if matches_pattern(
+            &lower,
+            &["virus", "total", "reputación", "reputation", "hash"],
+        ) {
             if let Some(hash) = extract_hash(&lower) {
                 return Intent::QueryVirusTotal { hash };
             }
         }
 
         // --- Info del sistema ---
-        if matches_pattern(&lower, &["sistema", "system", "computadora", "computer", "equipo", "specs"]) {
+        if matches_pattern(
+            &lower,
+            &[
+                "sistema",
+                "system",
+                "computadora",
+                "computer",
+                "equipo",
+                "specs",
+            ],
+        ) {
             return Intent::GetSystemInfo;
         }
 
         // --- Protocolo Ysmel ---
         if matches_pattern(&lower, &["ysmel", "aislamiento", "isolation mode"]) {
-            if matches_pattern(&lower, &["desactivar", "deactivate", "apagar", "off", "stop"]) {
+            if matches_pattern(
+                &lower,
+                &["desactivar", "deactivate", "apagar", "off", "stop"],
+            ) {
                 return Intent::DeactivateYsmel;
             }
             return Intent::ActivateYsmel;
         }
 
         // --- Protocolo Fenix ---
-        if matches_pattern(&lower, &["fenix", "fénix", "phoenix", "recuperación", "recovery"]) {
-            if matches_pattern(&lower, &["desactivar", "deactivate", "apagar", "off", "stop"]) {
+        if matches_pattern(
+            &lower,
+            &["fenix", "fénix", "phoenix", "recuperación", "recovery"],
+        ) {
+            if matches_pattern(
+                &lower,
+                &["desactivar", "deactivate", "apagar", "off", "stop"],
+            ) {
                 return Intent::DeactivateFenix;
             }
             return Intent::ActivateFenix;
@@ -215,8 +284,8 @@ impl IntentParser {
         if matches_pattern(
             &lower,
             &[
-                "hola", "hello", "hi", "hey", "buenos", "buenas", "saludos",
-                "gracias", "thank", "adiós", "bye",
+                "hola", "hello", "hi", "hey", "buenos", "buenas", "saludos", "gracias", "thank",
+                "adiós", "bye",
             ],
         ) {
             return Intent::GeneralConversation {
@@ -268,11 +337,7 @@ fn extract_id(input: &str) -> Option<String> {
     let words: Vec<&str> = input.split_whitespace().collect();
     for word in &words {
         let clean = word.trim_matches(|c: char| c == ',' || c == '.' || c == ':' || c == '"');
-        if clean.len() >= 8
-            && clean
-                .chars()
-                .all(|c| c.is_ascii_alphanumeric() || c == '-')
-        {
+        if clean.len() >= 8 && clean.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
             return Some(clean.to_string());
         }
     }
@@ -283,10 +348,7 @@ fn extract_id(input: &str) -> Option<String> {
 fn extract_hash(input: &str) -> Option<String> {
     let words: Vec<&str> = input.split_whitespace().collect();
     for word in &words {
-        let clean: String = word
-            .chars()
-            .filter(|c| c.is_ascii_hexdigit())
-            .collect();
+        let clean: String = word.chars().filter(|c| c.is_ascii_hexdigit()).collect();
         if matches!(clean.len(), 32 | 40 | 64) {
             return Some(clean);
         }
@@ -390,7 +452,9 @@ mod tests {
         let parser = IntentParser::new();
         let intent = parser.parse("check hash d41d8cd98f00b204e9800998ecf8427e");
         match intent {
-            Intent::QueryVirusTotal { hash } => assert_eq!(hash, "d41d8cd98f00b204e9800998ecf8427e"),
+            Intent::QueryVirusTotal { hash } => {
+                assert_eq!(hash, "d41d8cd98f00b204e9800998ecf8427e")
+            }
             _ => panic!("Expected QueryVirusTotal"),
         }
     }

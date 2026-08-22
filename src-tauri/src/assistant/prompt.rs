@@ -70,10 +70,18 @@ impl PromptBuilder {
         let detail_desc = match (personality.detail_level, lang) {
             (DetailLevel::Brief, Lang::Es) => "Mantén las respuestas cortas y directas.",
             (DetailLevel::Brief, Lang::En) => "Keep responses short and to the point.",
-            (DetailLevel::Normal, Lang::Es) => "Proporciona respuestas equilibradas con contexto apropiado.",
-            (DetailLevel::Normal, Lang::En) => "Provide balanced responses with appropriate context.",
-            (DetailLevel::Detailed, Lang::Es) => "Proporciona explicaciones completas con ejemplos.",
-            (DetailLevel::Detailed, Lang::En) => "Provide comprehensive explanations with examples.",
+            (DetailLevel::Normal, Lang::Es) => {
+                "Proporciona respuestas equilibradas con contexto apropiado."
+            }
+            (DetailLevel::Normal, Lang::En) => {
+                "Provide balanced responses with appropriate context."
+            }
+            (DetailLevel::Detailed, Lang::Es) => {
+                "Proporciona explicaciones completas con ejemplos."
+            }
+            (DetailLevel::Detailed, Lang::En) => {
+                "Provide comprehensive explanations with examples."
+            }
         };
 
         let emoji_desc = match (personality.use_emojis, lang) {
@@ -96,8 +104,7 @@ impl PromptBuilder {
 
     fn section_role(&self, lang: Lang) -> String {
         match lang {
-            Lang::Es => {
-                "## Rol\n\
+            Lang::Es => "## Rol\n\
                  Eres un companion AI de análisis de malware. Ayudas a los usuarios a:\n\
                  - Entender resultados de escaneo y niveles de amenaza\n\
                  - Guiar el escaneo de archivos y carpetas\n\
@@ -106,10 +113,8 @@ impl PromptBuilder {
                  - Consultar reputación en VirusTotal\n\
                  - Proporcionar información de seguridad del sistema\n\
                  - Activar/desactivar protocolos de seguridad (Ysmel, Fenix)"
-                    .into()
-            }
-            Lang::En => {
-                "## Role\n\
+                .into(),
+            Lang::En => "## Role\n\
                  You are an AI malware analysis companion. You help users:\n\
                  - Understand scan results and threat levels\n\
                  - Guide file and folder scanning\n\
@@ -118,8 +123,7 @@ impl PromptBuilder {
                  - Check VirusTotal reputation\n\
                  - Provide system security information\n\
                  - Activate/deactivate security protocols (Ysmel, Fenix)"
-                    .into()
-            }
+                .into(),
         }
     }
 
@@ -248,7 +252,8 @@ impl PromptBuilder {
                 Lang::Es => {
                     actions.push("- Analizar un archivo (necesita ruta)".into());
                     actions.push("- Poner archivo en cuarentena (requiere confirmación)".into());
-                    actions.push("- Restaurar archivo de cuarentena (requiere confirmación)".into());
+                    actions
+                        .push("- Restaurar archivo de cuarentena (requiere confirmación)".into());
                     actions.push("- Generar informe de análisis".into());
                     actions.push("- Consultar VirusTotal (necesita hash)".into());
                 }

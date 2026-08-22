@@ -164,8 +164,10 @@ impl ToolRegistry {
                 params: serde_json::json!({}),
                 meta: ToolMeta {
                     risk: RiskLevel::Medium,
-                    confirmation_msg_es: "¿Activar protocolo Ysmel?\nEsto aislará la red del sistema.".into(),
-                    confirmation_msg_en: "Activate Ysmel protocol?\nThis will isolate the system network.".into(),
+                    confirmation_msg_es:
+                        "¿Activar protocolo Ysmel?\nEsto aislará la red del sistema.".into(),
+                    confirmation_msg_en:
+                        "Activate Ysmel protocol?\nThis will isolate the system network.".into(),
                     response_es: "Protocolo Ysmel activado. Aislamiento de red habilitado.".into(),
                 },
             }),
@@ -174,8 +176,11 @@ impl ToolRegistry {
                 params: serde_json::json!({}),
                 meta: ToolMeta {
                     risk: RiskLevel::High,
-                    confirmation_msg_es: "¿Desactivar protocolo Ysmel?\nEsto restaurará la conectividad de red.".into(),
-                    confirmation_msg_en: "Deactivate Ysmel protocol?\nThis will restore network connectivity.".into(),
+                    confirmation_msg_es:
+                        "¿Desactivar protocolo Ysmel?\nEsto restaurará la conectividad de red."
+                            .into(),
+                    confirmation_msg_en:
+                        "Deactivate Ysmel protocol?\nThis will restore network connectivity.".into(),
                     response_es: "Protocolo Ysmel desactivado. Conectividad restaurada.".into(),
                 },
             }),
@@ -184,9 +189,12 @@ impl ToolRegistry {
                 params: serde_json::json!({}),
                 meta: ToolMeta {
                     risk: RiskLevel::Medium,
-                    confirmation_msg_es: "¿Activar protocolo Fenix?\nModo de recuperación de emergencia.".into(),
-                    confirmation_msg_en: "Activate Fenix protocol?\nEmergency recovery mode.".into(),
-                    response_es: "Protocolo Fenix activado. Modo de recuperación habilitado.".into(),
+                    confirmation_msg_es:
+                        "¿Activar protocolo Fenix?\nModo de recuperación de emergencia.".into(),
+                    confirmation_msg_en: "Activate Fenix protocol?\nEmergency recovery mode."
+                        .into(),
+                    response_es: "Protocolo Fenix activado. Modo de recuperación habilitado."
+                        .into(),
                 },
             }),
             Intent::DeactivateFenix => Some(ToolCall {
@@ -224,29 +232,42 @@ impl Default for ToolRegistry {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::super::context::ApplicationContext;
     use super::super::intent::IntentParser;
     use super::super::safety::{SafetyLayer, ToolPermission};
+    use super::*;
 
     #[test]
     fn test_analyze_is_none_risk() {
         let reg = ToolRegistry::new();
-        let tc = reg.resolve_intent(&Intent::AnalyzeFile { path: "test.exe".into() }).unwrap();
+        let tc = reg
+            .resolve_intent(&Intent::AnalyzeFile {
+                path: "test.exe".into(),
+            })
+            .unwrap();
         assert_eq!(tc.meta.risk, RiskLevel::None);
     }
 
     #[test]
     fn test_quarantine_is_high_risk() {
         let reg = ToolRegistry::new();
-        let tc = reg.resolve_intent(&Intent::QuarantineFile { path: "bad.exe".into(), reason: None }).unwrap();
+        let tc = reg
+            .resolve_intent(&Intent::QuarantineFile {
+                path: "bad.exe".into(),
+                reason: None,
+            })
+            .unwrap();
         assert_eq!(tc.meta.risk, RiskLevel::High);
     }
 
     #[test]
     fn test_general_conversation_returns_none() {
         let reg = ToolRegistry::new();
-        assert!(reg.resolve_intent(&Intent::GeneralConversation { message: "hi".into() }).is_none());
+        assert!(reg
+            .resolve_intent(&Intent::GeneralConversation {
+                message: "hi".into()
+            })
+            .is_none());
     }
 
     #[test]
@@ -258,7 +279,11 @@ mod tests {
     #[test]
     fn test_get_analysis_is_none_risk() {
         let reg = ToolRegistry::new();
-        let tc = reg.resolve_intent(&Intent::GetAnalysis { id: "test-id".into() }).unwrap();
+        let tc = reg
+            .resolve_intent(&Intent::GetAnalysis {
+                id: "test-id".into(),
+            })
+            .unwrap();
         assert_eq!(tc.meta.risk, RiskLevel::None);
         assert_eq!(tc.tool, "get_analysis_by_id");
     }
@@ -282,10 +307,12 @@ mod tests {
     #[test]
     fn test_generate_report() {
         let reg = ToolRegistry::new();
-        let tc = reg.resolve_intent(&Intent::GenerateReport {
-            scan_id: "scan-1".into(),
-            format: Some("pdf".into()),
-        }).unwrap();
+        let tc = reg
+            .resolve_intent(&Intent::GenerateReport {
+                scan_id: "scan-1".into(),
+                format: Some("pdf".into()),
+            })
+            .unwrap();
         assert_eq!(tc.tool, "preview_report");
         assert_eq!(tc.meta.risk, RiskLevel::None);
     }
@@ -293,7 +320,11 @@ mod tests {
     #[test]
     fn test_query_virustotal() {
         let reg = ToolRegistry::new();
-        let tc = reg.resolve_intent(&Intent::QueryVirusTotal { hash: "abc123".into() }).unwrap();
+        let tc = reg
+            .resolve_intent(&Intent::QueryVirusTotal {
+                hash: "abc123".into(),
+            })
+            .unwrap();
         assert_eq!(tc.tool, "virustotal_lookup");
         assert_eq!(tc.meta.risk, RiskLevel::None);
     }
@@ -315,7 +346,9 @@ mod tests {
     #[test]
     fn test_restore_file_is_high_risk() {
         let reg = ToolRegistry::new();
-        let tc = reg.resolve_intent(&Intent::RestoreFile { id: "q-1".into() }).unwrap();
+        let tc = reg
+            .resolve_intent(&Intent::RestoreFile { id: "q-1".into() })
+            .unwrap();
         assert_eq!(tc.meta.risk, RiskLevel::High);
         assert_eq!(tc.tool, "restore_quarantined");
     }
@@ -364,11 +397,17 @@ mod tests {
             Intent::GetAnalysis { id: "x".into() },
             Intent::OpenHistory,
             Intent::OpenQuarantine,
-            Intent::GenerateReport { scan_id: "x".into(), format: Some("pdf".into()) },
+            Intent::GenerateReport {
+                scan_id: "x".into(),
+                format: Some("pdf".into()),
+            },
             Intent::QueryVirusTotal { hash: "x".into() },
             Intent::GetSystemInfo,
             Intent::GetRules,
-            Intent::QuarantineFile { path: "x".into(), reason: None },
+            Intent::QuarantineFile {
+                path: "x".into(),
+                reason: None,
+            },
             Intent::RestoreFile { id: "x".into() },
             Intent::ActivateYsmel,
             Intent::DeactivateYsmel,
@@ -376,8 +415,14 @@ mod tests {
             Intent::DeactivateFenix,
         ];
         for intent in intents {
-            let tc = reg.resolve_intent(&intent).expect(&format!("missing tool for {:?}", intent));
-            assert!(!tc.meta.response_es.is_empty(), "empty response_es for {:?}", intent);
+            let tc = reg
+                .resolve_intent(&intent)
+                .expect(&format!("missing tool for {:?}", intent));
+            assert!(
+                !tc.meta.response_es.is_empty(),
+                "empty response_es for {:?}",
+                intent
+            );
             assert!(!tc.tool.is_empty(), "empty tool name for {:?}", intent);
         }
     }

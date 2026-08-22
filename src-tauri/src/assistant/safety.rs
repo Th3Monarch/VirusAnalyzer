@@ -272,7 +272,10 @@ mod tests {
         let mut safety = SafetyLayer::new();
         safety.record_confirmation_accepted();
         assert_eq!(safety.audit_log.len(), 1);
-        assert_eq!(safety.audit_log[0].kind, SecurityEventKind::ConfirmationAccepted);
+        assert_eq!(
+            safety.audit_log[0].kind,
+            SecurityEventKind::ConfirmationAccepted
+        );
     }
 
     #[test]
@@ -290,7 +293,10 @@ mod tests {
         }
         let check = safety.check_risk(RiskLevel::High);
         assert_eq!(check.permission, ToolPermission::Blocked);
-        let rate_limited = check.events.iter().any(|e| e.kind == SecurityEventKind::RateLimited);
+        let rate_limited = check
+            .events
+            .iter()
+            .any(|e| e.kind == SecurityEventKind::RateLimited);
         assert!(rate_limited);
     }
 
@@ -328,7 +334,10 @@ mod tests {
         let check_high = safety.check_risk(RiskLevel::High);
         assert_eq!(check_high.permission, ToolPermission::Blocked);
         let check_medium = safety.check_risk(RiskLevel::Medium);
-        assert_eq!(check_medium.permission, ToolPermission::RequiresConfirmation);
+        assert_eq!(
+            check_medium.permission,
+            ToolPermission::RequiresConfirmation
+        );
         let check_none = safety.check_risk(RiskLevel::None);
         assert_eq!(check_none.permission, ToolPermission::Allowed);
     }

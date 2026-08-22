@@ -71,7 +71,10 @@ impl ApplicationContext {
             parts.push(format!("Last scan: {summary}"));
         }
         if self.total_threats_detected > 0 {
-            parts.push(format!("Threats detected this session: {}", self.total_threats_detected));
+            parts.push(format!(
+                "Threats detected this session: {}",
+                self.total_threats_detected
+            ));
         }
         if self.ysmel_active {
             parts.push("Ysmel: ACTIVE".into());

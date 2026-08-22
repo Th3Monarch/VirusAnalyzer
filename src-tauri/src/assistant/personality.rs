@@ -67,7 +67,9 @@ impl Personality {
         let detail_desc = match (self.detail_level, is_es) {
             (DetailLevel::Brief, true) => "Mantén las respuestas cortas y directas.",
             (DetailLevel::Brief, false) => "Keep responses short and to the point.",
-            (DetailLevel::Normal, true) => "Proporciona respuestas equilibradas con contexto apropiado.",
+            (DetailLevel::Normal, true) => {
+                "Proporciona respuestas equilibradas con contexto apropiado."
+            }
             (DetailLevel::Normal, false) => "Provide balanced responses with appropriate context.",
             (DetailLevel::Detailed, true) => "Proporciona explicaciones completas con ejemplos.",
             (DetailLevel::Detailed, false) => "Provide comprehensive explanations with examples.",

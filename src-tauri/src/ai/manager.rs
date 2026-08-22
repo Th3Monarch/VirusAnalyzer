@@ -52,10 +52,21 @@ impl ProviderManager {
     }
 
     /// Cambia a Ollama con la URL, modelo y parámetros dados.
-    pub fn switch_to_ollama(&mut self, url: String, model: String, temperature: f32, max_tokens: u32) {
+    pub fn switch_to_ollama(
+        &mut self,
+        url: String,
+        model: String,
+        temperature: f32,
+        max_tokens: u32,
+    ) {
         self.ollama_url = url.clone();
         self.ollama_model = model.clone();
-        self.provider = Arc::new(OllamaProvider::with_config(url, model, temperature, max_tokens));
+        self.provider = Arc::new(OllamaProvider::with_config(
+            url,
+            model,
+            temperature,
+            max_tokens,
+        ));
     }
 
     /// Cambia a StubProvider (modo determinista).
@@ -91,11 +102,7 @@ impl ProviderManager {
             .build()
             .unwrap_or_default();
 
-        match client
-            .get(format!("{}/api/tags", url))
-            .send()
-            .await
-        {
+        match client.get(format!("{}/api/tags", url)).send().await {
             Ok(resp) => {
                 if resp.status().is_success() {
                     match resp.json::<serde_json::Value>().await {
@@ -161,7 +168,9 @@ impl AiProvider for ProviderManager {
         user_message: &str,
         context: &[String],
     ) -> Result<AiCompletion, AiError> {
-        self.provider.complete(system_prompt, user_message, context).await
+        self.provider
+            .complete(system_prompt, user_message, context)
+            .await
     }
 
     async fn health_check(&self) -> bool {
@@ -229,7 +238,12 @@ mod tests {
     #[tokio::test]
     async fn test_manager_complete_delegates_to_stub() {
         let manager = ProviderManager::new();
-        let result = manager.read().await.complete("sys", "hello", &[]).await.unwrap();
+        let result = manager
+            .read()
+            .await
+            .complete("sys", "hello", &[])
+            .await
+            .unwrap();
         assert!(!result.text.is_empty());
     }
 }
