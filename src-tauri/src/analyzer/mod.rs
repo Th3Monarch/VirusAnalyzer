@@ -235,15 +235,13 @@ fn detect_by_extension(path: &Path) -> (String, String, String) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     /// El propio binario de test es un PE real: sirve de validación
     /// end-to-end del parser (cabeceras, secciones, imports, entropía).
     #[test]
     #[cfg(target_os = "windows")]
     fn analyzes_own_binary_as_pe() {
         let exe = std::env::current_exe().expect("current exe");
-        let analysis = analyze(&exe).expect("análisis estático");
+        let analysis = super::analyze(&exe).expect("análisis estático");
 
         assert!(analysis.is_pe, "el binario debería detectarse como PE");
         assert!(
