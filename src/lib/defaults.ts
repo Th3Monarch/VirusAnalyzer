@@ -33,5 +33,6 @@ export const DEFAULT_CONFIG: AppConfig = {
     ttsUrl: "http://localhost:8880",
     sttUrl: "http://localhost:8080",
     language: "es",
+    voiceId: "af_heart",
   },
 };

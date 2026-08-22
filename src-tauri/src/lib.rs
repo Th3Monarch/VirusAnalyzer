@@ -516,6 +516,36 @@ pub fn run() {
                 mgr.init_from_config(&config).await;
             });
 
+            // Inicializar pipeline de voz desde config en background.
+            let assistant_voice = Arc::clone(&assistant);
+            let app_handle_v = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                let config = match crate::config::ConfigManager::load(&app_handle_v) {
+                    Ok(m) => m.config,
+                    Err(_) => return,
+                };
+                let voice_config = crate::assistant::voice::VoiceConfig {
+                    enabled: config.voice.tts_provider == "kokoro"
+                        || config.voice.stt_provider == "whisper",
+                    auto_speak: false,
+                    language: config.voice.language.clone(),
+                    stt_provider: config.voice.stt_provider.clone(),
+                    tts_provider: config.voice.tts_provider.clone(),
+                    tts_url: config.voice.tts_url.clone(),
+                    stt_url: config.voice.stt_url.clone(),
+                    speech_rate: config.voice.speech_rate,
+                    volume: config.voice.volume,
+                    voice_id: if config.voice.voice_id.is_empty() {
+                        crate::assistant::voice::default_voice_for_language(&config.voice.language)
+                            .into()
+                    } else {
+                        config.voice.voice_id.clone()
+                    },
+                };
+                let mut voice = assistant_voice.voice.lock().await;
+                voice.init_from_config(&voice_config).await;
+            });
+
             app.manage(assistant);
             Ok(())
         })
@@ -565,6 +595,8 @@ pub fn run() {
             assistant::commands::assistant_synthesize,
             assistant::commands::assistant_transcribe,
             assistant::commands::assistant_voice_health,
+            assistant::commands::assistant_list_voices,
+            assistant::commands::assistant_get_accent_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

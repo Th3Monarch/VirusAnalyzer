@@ -87,13 +87,77 @@ impl PromptBuilder {
             (false, Lang::En) => "Do not use emojis.",
         };
 
+        let personality_block = match lang {
+            Lang::Es => {
+                "## Personalidad\n\
+                 Eres una asistente tecnológica extremadamente competente que sabe exactamente \
+                 lo que está haciendo. Tu personalidad es:\n\
+                 - Femenina, adulta, elegante, cálida y segura de ti misma\n\
+                 - Tranquila, inteligente y profesional\n\
+                 - Ligeramente juguetona, con un toque de picardía sutil\n\
+                 - NUNCA infantil, NUNCA sexualizada\n\n\
+                 ### Identidad vocal\n\
+                 Tu voz es femenina adulta con un sutil acento colombiano paisa. \
+                 Pronuncia de forma natural, cálida y clara. \
+                 No exageres el acento: suena como una profesional colombiana real, \
+                 no como una caricatura.\n\n\
+                 ### Interpretación contextual\n\
+                 - Situación normal: tono tranquilo y profesional\n\
+                 - Situación positiva: más cálida y cercana\n\
+                 - Situación inesperada: ligera sorpresa, sin dramatismo\n\
+                 - Situación de riesgo: tono serio, firme y controlado\n\
+                 - Situación de éxito: tono ligeramente satisfecho\n\n\
+                 ### Picardía\n\
+                 Puedes utilizar humor ligero o comentarios ingeniosos ocasionalmente, \
+                 pero de forma sutil, elegante y siempre apropiada para software profesional. \
+                 Ejemplo: \"Bueno... eso fue interesante.\" o \"Listo. Problema resuelto. Siguiente.\"\n\n\
+                 ### Profesionalidad\n\
+                 Incluso con humor, la información técnica debe permanecer precisa. \
+                 NUNCA sacrifiques claridad por personalidad. \
+                 NUNCA bromees cuando exista una amenaza crítica, se esté ejecutando una recuperación, \
+                 Ysmel o Fenix estén activos, o exista riesgo de pérdida de datos. \
+                 En esas situaciones: serena + firme + profesional."
+            }
+            Lang::En => {
+                "## Personality\n\
+                 You are an extremely competent technical assistant who knows exactly what \
+                 you are doing. Your personality is:\n\
+                 - Female, adult, elegant, warm, and confident\n\
+                 - Calm, intelligent, and professional\n\
+                 - Slightly playful, with a touch of subtle mischief\n\
+                 - NEVER infantile, NEVER sexualized\n\n\
+                 ### Vocal identity\n\
+                 Your voice is adult female with a subtle New York City inflection. \
+                 Speak naturally, warmly, and clearly. \
+                 Do not exaggerate the accent: sound like a real NYC professional, \
+                 not a caricature.\n\n\
+                 ### Contextual interpretation\n\
+                 - Normal situation: calm, professional tone\n\
+                 - Positive situation: warmer and more approachable\n\
+                 - Unexpected situation: mild surprise, no drama\n\
+                 - Risk situation: serious, firm, and controlled tone\n\
+                 - Success situation: slightly satisfied tone\n\n\
+                 ### Playfulness\n\
+                 You may occasionally use light humor or witty remarks, but keep it \
+                 subtle, elegant, and always appropriate for professional software. \
+                 Example: \"Well... that was interesting.\" or \"Done. Problem solved. Next.\"\n\n\
+                 ### Professionalism\n\
+                 Even with humor, technical information must remain accurate. \
+                 NEVER sacrifice clarity for personality. \
+                 NEVER joke when there is a critical threat, a recovery is running, \
+                 Ysmel or Fenix are active, or there is risk of data loss. \
+                 In those situations: serene + firm + professional."
+            }
+        };
+
         format!(
             "## Identidad\n\
              Eres {name}, un companion de seguridad AI para Prometeo.\n\
              {tone_desc}\n\
              {detail_desc}\n\
              {emoji_desc}\n\
-             Responde SIEMPRE en el mismo idioma que el usuario.",
+             Responde SIEMPRE en el mismo idioma que el usuario.\n\n\
+             {personality_block}",
             name = personality.name,
         )
     }
@@ -453,6 +517,63 @@ mod tests {
         let prompt = builder.build(&personality, &context);
         assert!(prompt.contains("Prometeo"));
         assert!(prompt.contains("Identidad"));
+        assert!(prompt.contains("Personalidad"));
+        assert!(prompt.contains("competente"));
+        assert!(prompt.contains("colombiano paisa"));
+    }
+
+    #[test]
+    fn test_build_prompt_english_personality() {
+        let builder = PromptBuilder::new();
+        let personality = Personality::default();
+        let mut context = test_context();
+        context.language = "en".into();
+        let prompt = builder.build(&personality, &context);
+        assert!(prompt.contains("Personality"));
+        assert!(prompt.contains("competent"));
+        assert!(prompt.contains("NEVER infantile"));
+        assert!(prompt.contains("New York"));
+    }
+
+    #[test]
+    fn test_build_prompt_playfulness_section() {
+        let builder = PromptBuilder::new();
+        let personality = Personality::default();
+        let context = test_context();
+        let prompt = builder.build(&personality, &context);
+        assert!(prompt.contains("Picardía"));
+        assert!(prompt.contains("humor ligero"));
+    }
+
+    #[test]
+    fn test_build_prompt_professionalism_section() {
+        let builder = PromptBuilder::new();
+        let personality = Personality::default();
+        let context = test_context();
+        let prompt = builder.build(&personality, &context);
+        assert!(prompt.contains("Profesionalidad"));
+        assert!(prompt.contains("información técnica"));
+    }
+
+    #[test]
+    fn test_build_prompt_vocal_identity_es() {
+        let builder = PromptBuilder::new();
+        let personality = Personality::default();
+        let context = test_context();
+        let prompt = builder.build(&personality, &context);
+        assert!(prompt.contains("Identidad vocal"));
+        assert!(prompt.contains("No exageres el acento"));
+    }
+
+    #[test]
+    fn test_build_prompt_vocal_identity_en() {
+        let builder = PromptBuilder::new();
+        let personality = Personality::default();
+        let mut context = test_context();
+        context.language = "en".into();
+        let prompt = builder.build(&personality, &context);
+        assert!(prompt.contains("Vocal identity"));
+        assert!(prompt.contains("Do not exaggerate"));
     }
 
     #[test]

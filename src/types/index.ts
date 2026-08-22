@@ -280,6 +280,7 @@ export interface VoicePreferences {
   ttsUrl: string;
   sttUrl: string;
   language: string;
+  voiceId: string;
 }
 
 export interface SystemInfo {

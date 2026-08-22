@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useConfig } from "../../contexts/ConfigContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { tauri } from "../../lib/tauri";
-import type { VoiceHealth } from "../../types/voice";
+import type { AccentInfo, VoiceHealth, VoiceInfo } from "../../types/voice";
 import { Loader2, Mic, Plug, PlugZap, Volume2 } from "lucide-react";
 
 interface VoiceSettingsProps {
@@ -24,6 +24,7 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
     ttsUrl: "http://localhost:8880",
     sttUrl: "http://localhost:8080",
     language,
+    voiceId: "",
   };
 
   // Local form state
@@ -36,12 +37,33 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
   const [speechRate, setSpeechRate] = useState(voicePrefs.speechRate);
   const [volume, setVolume] = useState(voicePrefs.volume);
   const [voiceLanguage, setVoiceLanguage] = useState(voicePrefs.language || language);
+  const [voiceId, setVoiceId] = useState(voicePrefs.voiceId || "");
+  const [availableVoices, setAvailableVoices] = useState<VoiceInfo[]>([]);
+  const [accentInfo, setAccentInfo] = useState<AccentInfo | null>(null);
 
   // Load voice state from backend
   useEffect(() => {
     void tauri.assistantGetVoiceState().catch(() => undefined);
     void tauri.assistantVoiceHealth().then(setHealth).catch(() => undefined);
   }, []);
+
+  // Load available voices and accent info when language changes
+  useEffect(() => {
+    void tauri
+      .assistantListVoices(voiceLanguage)
+      .then((voices) => {
+        setAvailableVoices(voices);
+        // Auto-select first voice if current voiceId not in list
+        if (voices.length > 0 && !voices.some((v) => v.id === voiceId)) {
+          setVoiceId(voices[0].id);
+        }
+      })
+      .catch(() => setAvailableVoices([]));
+    void tauri
+      .assistantGetAccentInfo(voiceLanguage)
+      .then(setAccentInfo)
+      .catch(() => setAccentInfo(null));
+  }, [voiceLanguage]);
 
   const checkHealth = useCallback(async () => {
     setChecking(true);
@@ -57,6 +79,7 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
         sttUrl,
         speechRate,
         volume,
+        voiceId,
       };
       await tauri.assistantUpdateVoiceConfig(backendConfig);
       const h = await tauri.assistantVoiceHealth();
@@ -69,7 +92,7 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
     } finally {
       setChecking(false);
     }
-  }, [enabled, autoSpeak, voiceLanguage, sttProvider, ttsProvider, ttsUrl, sttUrl, speechRate, volume]);
+  }, [enabled, autoSpeak, voiceLanguage, sttProvider, ttsProvider, ttsUrl, sttUrl, speechRate, volume, voiceId]);
 
   const save = useCallback(async () => {
     setSaving(true);
@@ -84,6 +107,7 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
         sttUrl,
         speechRate,
         volume,
+        voiceId,
       };
       await tauri.assistantUpdateVoiceConfig(backendConfig);
 
@@ -97,6 +121,7 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
           ttsUrl,
           sttUrl,
           language: voiceLanguage,
+          voiceId,
         },
       });
 
@@ -106,7 +131,7 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
     } finally {
       setSaving(false);
     }
-  }, [enabled, autoSpeak, voiceLanguage, sttProvider, ttsProvider, ttsUrl, sttUrl, speechRate, volume, updateConfig, onClose]);
+  }, [enabled, autoSpeak, voiceLanguage, sttProvider, ttsProvider, ttsUrl, sttUrl, speechRate, volume, voiceId, updateConfig, onClose]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -141,14 +166,15 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
           {/* Language */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-muted">{t("assistant.voiceLanguage")}</label>
-            <select
-              value={voiceLanguage}
-              onChange={(e) => setVoiceLanguage(e.target.value)}
-              className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
-            >
-              <option value="es">Español</option>
-              <option value="en">English</option>
-            </select>
+              <select
+                value={voiceLanguage}
+                onChange={(e) => setVoiceLanguage(e.target.value)}
+                className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+              >
+                <option value="es">Español</option>
+                <option value="en">English</option>
+                <option value="pt">Português</option>
+              </select>
           </div>
 
           {/* TTS Provider */}
@@ -175,6 +201,45 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
                 placeholder="http://localhost:8880"
                 className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink placeholder:text-muted/50 focus:border-accent focus:outline-none"
               />
+            </div>
+          )}
+
+          {/* Voice selector (Kokoro only) */}
+          {ttsProvider === "kokoro" && availableVoices.length > 0 && (
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-muted">{t("assistant.voiceSelect")}</label>
+              <select
+                value={voiceId}
+                onChange={(e) => setVoiceId(e.target.value)}
+                className="rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink focus:border-accent focus:outline-none"
+              >
+                {availableVoices.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} ({v.id})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Accent info */}
+          {accentInfo && ttsProvider === "kokoro" && (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium text-muted">{t("assistant.accentLabel")}</label>
+              <div
+                className={`rounded-lg border px-3 py-1.5 text-xs ${
+                  accentInfo.nativeAvailable
+                    ? "border-good/30 bg-good/10 text-good"
+                    : "border-amber-500/30 bg-amber-500/10 text-amber-400"
+                }`}
+              >
+                <span className="font-medium">{accentInfo.label}</span>
+                {accentInfo.limitation && (
+                  <span className="mt-1 block text-[11px] text-amber-400/80">
+                    {accentInfo.limitation}
+                  </span>
+                )}
+              </div>
             </div>
           )}
 

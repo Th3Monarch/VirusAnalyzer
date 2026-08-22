@@ -1026,6 +1026,18 @@ pub async fn assistant_voice_health(
     Ok(voice.health_check().await)
 }
 
+/// Devuelve las voces disponibles de Kokoro para un idioma.
+#[tauri::command]
+pub fn assistant_list_voices(language: String) -> Result<Vec<super::voice::VoiceInfo>, String> {
+    Ok(super::voice::list_voices(&language))
+}
+
+/// Devuelve información del acento para un idioma.
+#[tauri::command]
+pub fn assistant_get_accent_info(language: String) -> Result<super::voice::AccentInfo, String> {
+    Ok(super::voice::get_accent_info(&language))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

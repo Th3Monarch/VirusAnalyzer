@@ -118,6 +118,9 @@ pub struct VoicePreferences {
     pub stt_url: String,
     /// Idioma de voz (default: igual al idioma de la app).
     pub language: String,
+    /// ID de voz Kokoro (ej. "af_heart", "ef_dora").
+    #[serde(default)]
+    pub voice_id: String,
 }
 
 impl Default for VoicePreferences {
@@ -130,6 +133,7 @@ impl Default for VoicePreferences {
             tts_url: "http://localhost:8880".into(),
             stt_url: "http://localhost:8080".into(),
             language: "es".into(),
+            voice_id: "af_heart".into(),
         }
     }
 }

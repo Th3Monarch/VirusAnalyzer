@@ -25,7 +25,7 @@ import type {
   ModelInfo,
   OllamaTestResult,
 } from "../types/assistant";
-import type { VoiceConfig, VoiceHealth, VoiceRecordingState } from "../types/voice";
+import type { AccentInfo, VoiceConfig, VoiceHealth, VoiceInfo, VoiceRecordingState } from "../types/voice";
 
 export interface TauriClient {
   getConfig(): Promise<AppConfig>;
@@ -74,6 +74,8 @@ export interface TauriClient {
   assistantSynthesize(text: string): Promise<number[]>;
   assistantTranscribe(audio: number[]): Promise<string>;
   assistantVoiceHealth(): Promise<VoiceHealth>;
+  assistantListVoices(language: string): Promise<VoiceInfo[]>;
+  assistantGetAccentInfo(language: string): Promise<AccentInfo>;
 }
 
 export const tauri: TauriClient = {
@@ -139,4 +141,8 @@ export const tauri: TauriClient = {
     invoke<string>("assistant_transcribe", { audio }),
   assistantVoiceHealth: () =>
     invoke<VoiceHealth>("assistant_voice_health"),
+  assistantListVoices: (language) =>
+    invoke<VoiceInfo[]>("assistant_list_voices", { language }),
+  assistantGetAccentInfo: (language) =>
+    invoke<AccentInfo>("assistant_get_accent_info", { language }),
 };

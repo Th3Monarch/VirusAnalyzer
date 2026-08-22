@@ -12,6 +12,7 @@ export interface VoiceConfig {
   sttUrl: string;
   speechRate: number;
   volume: number;
+  voiceId: string;
 }
 
 export interface VoiceRecordingState {
@@ -26,6 +27,20 @@ export interface VoiceHealth {
   sttAvailable: boolean;
   ttsUrl: string;
   sttUrl: string;
+}
+
+/** Voz disponible de Kokoro. */
+export interface VoiceInfo {
+  id: string;
+  name: string;
+}
+
+/** Información del acento nativo para un idioma. */
+export interface AccentInfo {
+  label: string;
+  code: string;
+  nativeAvailable: boolean;
+  limitation: string | null;
 }
 
 /** Web Speech API recognition state */
