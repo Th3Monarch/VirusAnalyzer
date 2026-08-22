@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { tauri } from "../lib/tauri";
+import { useLanguage } from "./LanguageContext";
 import type {
   AssistantMessage,
   AssistantResponse,
@@ -42,6 +43,7 @@ interface AssistantContextValue {
 const AssistantContext = createContext<AssistantContextValue | undefined>(undefined);
 
 export function AssistantProvider({ children }: { children: ReactNode }) {
+  const { language } = useLanguage();
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
   const [isOpen, setIsOpen] = useState(() => {
     return localStorage.getItem(STORAGE_KEY) === "true";
@@ -111,7 +113,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await tauri.assistantSendMessage(message, confirmed, pendingId);
+        const response = await tauri.assistantSendMessage(message, confirmed, pendingId, language);
 
         // Append both user and assistant messages incrementally
         const userMsg: AssistantMessage = {
@@ -162,7 +164,7 @@ export function AssistantProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [syncProtocolState],
+    [syncProtocolState, language],
   );
 
   const clearSession = useCallback(async () => {

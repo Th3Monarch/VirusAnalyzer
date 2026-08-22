@@ -21,6 +21,7 @@ pub struct ToolMeta {
     pub confirmation_msg_es: String,
     pub confirmation_msg_en: String,
     pub response_es: String,
+    pub response_en: String,
 }
 
 /// Llamada a herramienta preparada para ejecución.
@@ -29,6 +30,17 @@ pub struct ToolCall {
     pub tool: String,
     pub params: serde_json::Value,
     pub meta: ToolMeta,
+}
+
+impl ToolMeta {
+    /// Devuelve la respuesta en el idioma dado.
+    pub fn response_for(&self, lang: &str) -> &str {
+        if lang == "en" {
+            &self.response_en
+        } else {
+            &self.response_es
+        }
+    }
 }
 
 /// Registry central de tools. Source of truth para risk levels,
@@ -57,6 +69,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: format!("Voy a analizar `{path}`. Esto puede tomar un momento."),
+                    response_en: format!("I'll analyze `{path}`. This may take a moment."),
                 },
             }),
             Intent::GetAnalysis { id } => Some(ToolCall {
@@ -67,6 +80,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: format!("Buscando resultado del análisis `{id}`..."),
+                    response_en: format!("Looking up analysis result `{id}`..."),
                 },
             }),
             Intent::OpenHistory => Some(ToolCall {
@@ -77,6 +91,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: "Abriendo historial de escaneos...".into(),
+                    response_en: "Opening scan history...".into(),
                 },
             }),
             Intent::OpenQuarantine => Some(ToolCall {
@@ -87,6 +102,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: "Abriendo cuarentena...".into(),
+                    response_en: "Opening quarantine...".into(),
                 },
             }),
             Intent::GenerateReport { scan_id, format } => Some(ToolCall {
@@ -97,6 +113,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: format!("Generando informe para análisis `{scan_id}`..."),
+                    response_en: format!("Generating report for analysis `{scan_id}`..."),
                 },
             }),
             Intent::QueryVirusTotal { hash } => Some(ToolCall {
@@ -107,6 +124,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: format!("Consultando reputación en VirusTotal: `{hash}`."),
+                    response_en: format!("Querying VirusTotal reputation: `{hash}`."),
                 },
             }),
             Intent::GetSystemInfo => Some(ToolCall {
@@ -117,6 +135,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: "Obteniendo información del sistema...".into(),
+                    response_en: "Getting system information...".into(),
                 },
             }),
             Intent::GetRules => Some(ToolCall {
@@ -127,6 +146,7 @@ impl ToolRegistry {
                     confirmation_msg_es: String::new(),
                     confirmation_msg_en: String::new(),
                     response_es: "Mostrando catálogo de reglas heurísticas...".into(),
+                    response_en: "Showing heuristic rules catalog...".into(),
                 },
             }),
 
@@ -145,6 +165,7 @@ impl ToolRegistry {
                         reason.as_deref().unwrap_or("none")
                     ),
                     response_es: format!("Archivo `{path}` aislado en cuarentena."),
+                    response_en: format!("File `{path}` quarantined."),
                 },
             }),
             Intent::RestoreFile { id } => Some(ToolCall {
@@ -155,6 +176,7 @@ impl ToolRegistry {
                     confirmation_msg_es: format!("¿Restaurar archivo de cuarentena?\nID: {id}"),
                     confirmation_msg_en: format!("Restore quarantined file?\nID: {id}"),
                     response_es: format!("Archivo `{id}` restaurado de cuarentena."),
+                    response_en: format!("File `{id}` restored from quarantine."),
                 },
             }),
 
@@ -169,6 +191,7 @@ impl ToolRegistry {
                     confirmation_msg_en:
                         "Activate Ysmel protocol?\nThis will isolate the system network.".into(),
                     response_es: "Protocolo Ysmel activado. Aislamiento de red habilitado.".into(),
+                    response_en: "Ysmel protocol activated. Network isolation enabled.".into(),
                 },
             }),
             Intent::DeactivateYsmel => Some(ToolCall {
@@ -182,6 +205,8 @@ impl ToolRegistry {
                     confirmation_msg_en:
                         "Deactivate Ysmel protocol?\nThis will restore network connectivity.".into(),
                     response_es: "Protocolo Ysmel desactivado. Conectividad restaurada.".into(),
+                    response_en: "Ysmel protocol deactivated. Network connectivity restored."
+                        .into(),
                 },
             }),
             Intent::ActivateFenix => Some(ToolCall {
@@ -195,6 +220,8 @@ impl ToolRegistry {
                         .into(),
                     response_es: "Protocolo Fenix activado. Modo de recuperación habilitado."
                         .into(),
+                    response_en: "Fenix protocol activated. Emergency recovery mode enabled."
+                        .into(),
                 },
             }),
             Intent::DeactivateFenix => Some(ToolCall {
@@ -205,6 +232,7 @@ impl ToolRegistry {
                     confirmation_msg_es: "¿Desactivar protocolo Fenix?".into(),
                     confirmation_msg_en: "Deactivate Fenix protocol?".into(),
                     response_es: "Protocolo Fenix desactivado.".into(),
+                    response_en: "Fenix protocol deactivated.".into(),
                 },
             }),
 
@@ -220,6 +248,7 @@ impl ToolRegistry {
             confirmation_msg_es: String::new(),
             confirmation_msg_en: String::new(),
             response_es: String::new(),
+            response_en: String::new(),
         }
     }
 }
@@ -421,6 +450,11 @@ mod tests {
             assert!(
                 !tc.meta.response_es.is_empty(),
                 "empty response_es for {:?}",
+                intent
+            );
+            assert!(
+                !tc.meta.response_en.is_empty(),
+                "empty response_en for {:?}",
                 intent
             );
             assert!(!tc.tool.is_empty(), "empty tool name for {:?}", intent);

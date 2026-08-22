@@ -489,10 +489,17 @@ pub fn run() {
             let ysmel_active = Arc::new(AtomicBool::new(false));
             let fenix_active = Arc::new(AtomicBool::new(false));
             let provider = crate::ai::manager::ProviderManager::new();
+            let assistant_silent_mode = {
+                let app_handle = app.handle().clone();
+                crate::config::ConfigManager::load(&app_handle)
+                    .map(|m| m.config.assistant_silent_mode)
+                    .unwrap_or(false)
+            };
             let assistant = Arc::new(AssistantState::new(
                 ysmel_active.clone(),
                 fenix_active.clone(),
                 provider,
+                assistant_silent_mode,
             ));
             assistant.set_app_handle(app.handle().clone());
 

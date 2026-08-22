@@ -73,6 +73,7 @@ impl AssistantState {
         ysmel_active: Arc<std::sync::atomic::AtomicBool>,
         fenix_active: Arc<std::sync::atomic::AtomicBool>,
         provider: Arc<tokio::sync::RwLock<ProviderManager>>,
+        silent_mode: bool,
     ) -> Self {
         Self {
             session: std::sync::Mutex::new(SessionContext::new()),
@@ -85,7 +86,7 @@ impl AssistantState {
             pending_confirmations: std::sync::Mutex::new(Vec::new()),
             ysmel_active,
             fenix_active,
-            silent_mode: Arc::new(std::sync::atomic::AtomicBool::new(false)),
+            silent_mode: Arc::new(std::sync::atomic::AtomicBool::new(silent_mode)),
             provider,
             voice: tokio::sync::Mutex::new(VoicePipeline::new()),
             app_handle: std::sync::Mutex::new(None),
@@ -178,21 +179,46 @@ fn validate_ollama_url(url: &str) -> Result<(), String> {
 
 /// Sanitizes an internal error into a user-safe message.
 /// Logs the full error server-side; returns only safe text to the caller.
-fn sanitize_tool_error(err: &str) -> String {
+fn sanitize_tool_error(err: &str, lang: &str) -> String {
+    let is_en = lang == "en";
     // Map known error patterns to safe user messages
     if err.contains("not found") || err.contains("No such file") {
-        "Archivo o recurso no encontrado.".to_string()
+        if is_en {
+            "File or resource not found.".into()
+        } else {
+            "Archivo o recurso no encontrado.".into()
+        }
     } else if err.contains("Permission denied") || err.contains("access denied") {
-        "Permiso denegado. Ejecute Prometeo como administrador si es necesario.".to_string()
+        if is_en {
+            "Permission denied. Run Prometeo as administrator if needed.".into()
+        } else {
+            "Permiso denegado. Ejecute Prometeo como administrador si es necesario.".into()
+        }
     } else if err.contains("locked") {
-        "Servicio bloqueado temporalmente. Intente de nuevo.".to_string()
+        if is_en {
+            "Service temporarily locked. Try again.".into()
+        } else {
+            "Servicio bloqueado temporalmente. Intente de nuevo.".into()
+        }
     } else if err.contains("not initialized") {
-        "Servicio no disponible. Verifique la configuración.".to_string()
+        if is_en {
+            "Service unavailable. Check settings.".into()
+        } else {
+            "Servicio no disponible. Verifique la configuración.".into()
+        }
     } else if err.contains("Unknown provider") {
-        "Proveedor de IA no reconocido.".to_string()
+        if is_en {
+            "Unrecognized AI provider.".into()
+        } else {
+            "Proveedor de IA no reconocido.".into()
+        }
     } else {
         // Generic safe fallback — never expose OS details, paths, or internals
-        "Ocurrió un error al procesar la solicitud. Intente de nuevo.".to_string()
+        if is_en {
+            "An error occurred processing the request. Please try again.".into()
+        } else {
+            "Ocurrió un error al procesar la solicitud. Intente de nuevo.".into()
+        }
     }
 }
 
@@ -206,16 +232,26 @@ pub async fn assistant_send_message(
     message: String,
     confirmed: Option<bool>,
     pending_id: Option<String>,
+    language: Option<String>,
 ) -> Result<AssistantResponse, String> {
+    let lang = language.unwrap_or_else(|| "es".into());
     let start = std::time::Instant::now();
 
     // M5: Input size cap — prevent memory exhaustion from oversized messages
     if message.len() > MAX_MESSAGE_BYTES {
-        return Err(format!(
-            "Mensaje demasiado largo ({} bytes, máximo {}).",
-            message.len(),
-            MAX_MESSAGE_BYTES
-        ));
+        return Err(if lang == "en" {
+            format!(
+                "Message too long ({} bytes, max {}).",
+                message.len(),
+                MAX_MESSAGE_BYTES
+            )
+        } else {
+            format!(
+                "Mensaje demasiado largo ({} bytes, máximo {}).",
+                message.len(),
+                MAX_MESSAGE_BYTES
+            )
+        });
     }
 
     // Limpiar confirmaciones expiradas
@@ -254,7 +290,11 @@ pub async fn assistant_send_message(
 
     match permission {
         ToolPermission::Blocked => {
-            let response_text = "Esta acción está bloqueada por los protocolos de seguridad.\nThis action is currently blocked by security protocols.".to_string();
+            let response_text = if lang == "en" {
+                "This action is currently blocked by security protocols.".to_string()
+            } else {
+                "Esta acción está bloqueada por los protocolos de seguridad.".to_string()
+            };
             let intent_name = intent.name().to_string();
             let mut session = state.session.lock().map_err(|_| "Session locked")?;
             session.add_assistant_message(&response_text, Some(intent_name), false);
@@ -395,9 +435,10 @@ pub async fn assistant_send_message(
 
     // Ejecutar la tool usando el ToolExecutor como dispatcher
     // H3: Sanitize errors — never expose internal paths/details to frontend
-    let (response_text, tool_result) = execute_tool(&state, &scan_store, &intent, &tool_call)
-        .await
-        .map_err(|e| sanitize_tool_error(&e))?;
+    let (response_text, tool_result) =
+        execute_tool(&state, &scan_store, &intent, &tool_call, &lang)
+            .await
+            .map_err(|e| sanitize_tool_error(&e, &lang))?;
 
     // Registrar respuesta del assistant
     {
@@ -426,28 +467,44 @@ async fn execute_tool(
     scan_store: &State<'_, Arc<std::sync::Mutex<ScanStore>>>,
     intent: &Intent,
     tool_call: &Option<super::tools::ToolCall>,
+    lang: &str,
 ) -> Result<(String, Option<serde_json::Value>), String> {
     let tc = match tool_call {
         Some(tc) => tc,
         None => {
             // GeneralConversation → usar AI provider
-            return execute_conversation(state, intent).await;
+            return execute_conversation(state, intent, lang).await;
         }
     };
 
     match tc.tool.as_str() {
         // --- Navegación ---
-        "navigate" => Ok((tc.meta.response_es.clone(), Some(tc.params.clone()))),
+        "navigate" => Ok((
+            tc.meta.response_for(lang).to_string(),
+            Some(tc.params.clone()),
+        )),
 
         // --- Información ---
-        "get_system_info" => Ok((tc.meta.response_es.clone(), Some(tc.params.clone()))),
-        "get_rules" => Ok((tc.meta.response_es.clone(), Some(tc.params.clone()))),
+        "get_system_info" => Ok((
+            tc.meta.response_for(lang).to_string(),
+            Some(tc.params.clone()),
+        )),
+        "get_rules" => Ok((
+            tc.meta.response_for(lang).to_string(),
+            Some(tc.params.clone()),
+        )),
 
         // --- VirusTotal ---
-        "virustotal_lookup" => Ok((tc.meta.response_es.clone(), Some(tc.params.clone()))),
+        "virustotal_lookup" => Ok((
+            tc.meta.response_for(lang).to_string(),
+            Some(tc.params.clone()),
+        )),
 
         // --- Escaneo ---
-        "scan_path" => Ok((tc.meta.response_es.clone(), Some(tc.params.clone()))),
+        "scan_path" => Ok((
+            tc.meta.response_for(lang).to_string(),
+            Some(tc.params.clone()),
+        )),
 
         // --- Análisis por ID ---
         "get_analysis_by_id" => {
@@ -458,13 +515,15 @@ async fn execute_tool(
             };
             match result {
                 Some(data) => {
-                    let summary = summarize_analysis(&data);
+                    let summary = summarize_analysis(&data, lang);
                     Ok((summary, Some(data)))
                 }
                 None => Ok((
-                    format!(
-                        "No se encontró análisis con ID `{id}`.\nNo analysis found with ID `{id}`."
-                    ),
+                    if lang == "en" {
+                        format!("No analysis found with ID `{id}`.")
+                    } else {
+                        format!("No se encontró análisis con ID `{id}`.")
+                    },
                     None,
                 )),
             }
@@ -496,7 +555,7 @@ async fn execute_tool(
                 let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
                 safety.record_destructive_action();
             }
-            Ok((tc.meta.response_es.clone(), Some(result)))
+            Ok((tc.meta.response_for(lang).to_string(), Some(result)))
         }
 
         // --- Restaurar ---
@@ -517,7 +576,7 @@ async fn execute_tool(
                 let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
                 safety.record_destructive_action();
             }
-            Ok((tc.meta.response_es.clone(), Some(result)))
+            Ok((tc.meta.response_for(lang).to_string(), Some(result)))
         }
 
         // --- Informes ---
@@ -542,10 +601,14 @@ async fn execute_tool(
                         "format": format_str,
                         "content": content,
                     });
-                    Ok((tc.meta.response_es.clone(), Some(preview)))
+                    Ok((tc.meta.response_for(lang).to_string(), Some(preview)))
                 }
                 None => Ok((
-                    format!("No se encontró análisis `{scan_id}` para generar informe.\nAnalysis `{scan_id}` not found for report."),
+                    if lang == "en" {
+                        format!("Analysis `{scan_id}` not found for report.")
+                    } else {
+                        format!("No se encontró análisis `{scan_id}` para generar informe.")
+                    },
                     None,
                 )),
             }
@@ -558,7 +621,7 @@ async fn execute_tool(
             state
                 .ysmel_active
                 .store(true, std::sync::atomic::Ordering::SeqCst);
-            Ok((tc.meta.response_es.clone(), None))
+            Ok((tc.meta.response_for(lang).to_string(), None))
         }
         "deactivate_ysmel" => {
             let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
@@ -566,7 +629,7 @@ async fn execute_tool(
             state
                 .ysmel_active
                 .store(false, std::sync::atomic::Ordering::SeqCst);
-            Ok((tc.meta.response_es.clone(), None))
+            Ok((tc.meta.response_for(lang).to_string(), None))
         }
         "activate_fenix" => {
             let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
@@ -574,7 +637,7 @@ async fn execute_tool(
             state
                 .fenix_active
                 .store(true, std::sync::atomic::Ordering::SeqCst);
-            Ok((tc.meta.response_es.clone(), None))
+            Ok((tc.meta.response_for(lang).to_string(), None))
         }
         "deactivate_fenix" => {
             let mut safety = state.safety.lock().map_err(|_| "Safety locked")?;
@@ -582,12 +645,16 @@ async fn execute_tool(
             state
                 .fenix_active
                 .store(false, std::sync::atomic::Ordering::SeqCst);
-            Ok((tc.meta.response_es.clone(), None))
+            Ok((tc.meta.response_for(lang).to_string(), None))
         }
 
         // --- Catch-all ---
         _ => Ok((
-            "No puedo ejecutar esa acción.\nI can't perform that action.".into(),
+            if lang == "en" {
+                "I can't perform that action.".into()
+            } else {
+                "No puedo ejecutar esa acción.".into()
+            },
             None,
         )),
     }
@@ -597,10 +664,20 @@ async fn execute_tool(
 async fn execute_conversation(
     state: &State<'_, Arc<AssistantState>>,
     intent: &Intent,
+    lang: &str,
 ) -> Result<(String, Option<serde_json::Value>), String> {
     let user_msg = match intent {
         Intent::GeneralConversation { message } => message.clone(),
-        _ => return Ok(("No entiendo tu mensaje.\nI don't understand.".into(), None)),
+        _ => {
+            return Ok((
+                if lang == "en" {
+                    "I don't understand.".into()
+                } else {
+                    "No entiendo tu mensaje.".into()
+                },
+                None,
+            ))
+        }
     };
 
     let session_context = {
@@ -624,15 +701,16 @@ async fn execute_conversation(
     {
         Ok(completion) => Ok((completion.text, None)),
         Err(_) => {
-            let response = generate_conversational_response(&user_msg);
+            let response = generate_conversational_response(&user_msg, lang);
             Ok((response, None))
         }
     }
 }
 
 /// Genera una respuesta conversacional de fallback (cuando no hay AI provider).
-fn generate_conversational_response(input: &str) -> String {
+fn generate_conversational_response(input: &str, lang: &str) -> String {
     let lower = input.to_lowercase();
+    let is_en = lang == "en";
 
     if lower.contains("hola")
         || lower.contains("hello")
@@ -641,15 +719,27 @@ fn generate_conversational_response(input: &str) -> String {
         || lower.contains("buenos")
         || lower.contains("buenas")
     {
-        return "Hello! I'm your Prometeo security companion. I can help you analyze files, understand scan results, manage quarantine, and more. What would you like to do?".into();
+        return if is_en {
+            "Hello! I'm your Prometeo security companion. I can help you analyze files, understand scan results, manage quarantine, and more. What would you like to do?".into()
+        } else {
+            "Hello! I'm your Prometeo security companion. I can help you analyze files, understand scan results, manage quarantine, and more. What would you like to do?".into()
+        };
     }
 
     if lower.contains("gracias") || lower.contains("thank") {
-        return "You're welcome! Let me know if you need anything else.".into();
+        return if is_en {
+            "You're welcome! Let me know if you need anything else.".into()
+        } else {
+            "¡De nada! Avísame si necesitas algo más.".into()
+        };
     }
 
     if lower.contains("adiós") || lower.contains("bye") || lower.contains("chao") {
-        return "Goodbye! Stay safe. I'm here whenever you need me.".into();
+        return if is_en {
+            "Goodbye! Stay safe. I'm here whenever you need me.".into()
+        } else {
+            "¡Adiós! Mantente seguro. Estoy aquí cuando me necesites.".into()
+        };
     }
 
     if lower.contains("que puedes")
@@ -657,14 +747,22 @@ fn generate_conversational_response(input: &str) -> String {
         || lower.contains("help")
         || lower.contains("ayuda")
     {
-        return "I can help you with:\n- Analyzing files for threats\n- Understanding scan results\n- Managing quarantine\n- Explaining heuristic rules\n- Checking VirusTotal reputation\n- System security information\n- Activating security protocols\n\nJust ask me anything!".into();
+        return if is_en {
+            "I can help you with:\n- Analyzing files for threats\n- Understanding scan results\n- Managing quarantine\n- Explaining heuristic rules\n- Checking VirusTotal reputation\n- System security information\n- Activating security protocols\n\nJust ask me anything!".into()
+        } else {
+            "Puedo ayudarte con:\n- Analizar archivos en busca de amenazas\n- Comprender resultados de escaneo\n- Gestionar cuarentena\n- Explicar reglas heurísticas\n- Consultar reputación en VirusTotal\n- Información de seguridad del sistema\n- Activar protocolos de seguridad\n\n¡Solo pídemelo!".into()
+        };
     }
 
-    "I'm here to help with Prometeo. What would you like to do?".into()
+    if is_en {
+        "I'm here to help with Prometeo. What would you like to do?".into()
+    } else {
+        "Estoy aquí para ayudarte con Prometeo. ¿Qué te gustaría hacer?".into()
+    }
 }
 
 /// Resume un resultado de análisis en un mensaje legible.
-fn summarize_analysis(data: &serde_json::Value) -> String {
+fn summarize_analysis(data: &serde_json::Value, lang: &str) -> String {
     let name = data["fileInfo"]["name"].as_str().unwrap_or("unknown");
     let threat = data["assessment"]["threatLevel"]
         .as_str()
@@ -674,9 +772,15 @@ fn summarize_analysis(data: &serde_json::Value) -> String {
         .as_str()
         .unwrap_or("unknown");
 
-    format!(
-        "Análisis de `{name}`:\n  Nivel de amenaza: {threat}\n  Puntaje: {score}/100\n  Riesgo: {risk}\n\nAnalysis of `{name}`:\n  Threat level: {threat}\n  Score: {score}/100\n  Risk: {risk}"
-    )
+    if lang == "en" {
+        format!(
+            "Analysis of `{name}`:\n  Threat level: {threat}\n  Score: {score}/100\n  Risk: {risk}"
+        )
+    } else {
+        format!(
+            "Análisis de `{name}`:\n  Nivel de amenaza: {threat}\n  Puntaje: {score}/100\n  Riesgo: {risk}"
+        )
+    }
 }
 
 // --- Comandos Tauri ---
@@ -815,6 +919,18 @@ pub async fn assistant_set_silent_mode(
     state
         .silent_mode
         .store(enabled, std::sync::atomic::Ordering::SeqCst);
+    // Persist to config
+    if let Some(handle) = state
+        .app_handle
+        .lock()
+        .map_err(|_| "AppHandle locked")?
+        .as_ref()
+    {
+        if let Ok(mut mgr) = crate::config::ConfigManager::load(handle) {
+            mgr.config.assistant_silent_mode = enabled;
+            let _ = mgr.save();
+        }
+    }
     Ok(enabled)
 }
 
@@ -988,44 +1104,44 @@ mod tests {
 
     #[test]
     fn test_sanitize_not_found() {
-        let msg = sanitize_tool_error("file not found at /tmp/test");
+        let msg = sanitize_tool_error("file not found at /tmp/test", "es");
         assert_eq!(msg, "Archivo o recurso no encontrado.");
     }
 
     #[test]
     fn test_sanitize_no_such_file() {
-        let msg = sanitize_tool_error("No such file or directory");
+        let msg = sanitize_tool_error("No such file or directory", "es");
         assert_eq!(msg, "Archivo o recurso no encontrado.");
     }
 
     #[test]
     fn test_sanitize_permission_denied() {
-        let msg = sanitize_tool_error("Permission denied: /etc/shadow");
+        let msg = sanitize_tool_error("Permission denied: /etc/shadow", "es");
         assert!(msg.contains("Permiso denegado"));
         assert!(!msg.contains("/etc/shadow"));
     }
 
     #[test]
     fn test_sanitize_locked() {
-        let msg = sanitize_tool_error("database locked");
+        let msg = sanitize_tool_error("database locked", "es");
         assert_eq!(msg, "Servicio bloqueado temporalmente. Intente de nuevo.");
     }
 
     #[test]
     fn test_sanitize_not_initialized() {
-        let msg = sanitize_tool_error("provider not initialized");
+        let msg = sanitize_tool_error("provider not initialized", "es");
         assert_eq!(msg, "Servicio no disponible. Verifique la configuración.");
     }
 
     #[test]
     fn test_sanitize_unknown_provider() {
-        let msg = sanitize_tool_error("Unknown provider: custom");
+        let msg = sanitize_tool_error("Unknown provider: custom", "es");
         assert_eq!(msg, "Proveedor de IA no reconocido.");
     }
 
     #[test]
     fn test_sanitize_generic_fallback() {
-        let msg = sanitize_tool_error("something went wrong at /internal/path");
+        let msg = sanitize_tool_error("something went wrong at /internal/path", "es");
         assert_eq!(
             msg,
             "Ocurrió un error al procesar la solicitud. Intente de nuevo."
@@ -1035,8 +1151,14 @@ mod tests {
 
     #[test]
     fn test_sanitize_never_exposes_paths() {
-        let msg = sanitize_tool_error("Error reading C:\\Users\\admin\\secret.txt");
+        let msg = sanitize_tool_error("Error reading C:\\Users\\admin\\secret.txt", "es");
         assert!(!msg.contains("C:\\Users"));
         assert!(!msg.contains("secret.txt"));
+    }
+
+    #[test]
+    fn test_sanitize_english() {
+        let msg = sanitize_tool_error("file not found", "en");
+        assert_eq!(msg, "File or resource not found.");
     }
 }

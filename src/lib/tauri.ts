@@ -56,7 +56,7 @@ export interface TauriClient {
   takeLaunchPath(): Promise<string | null>;
 
   // Assistant
-  assistantSendMessage(message: string, confirmed?: boolean, pendingId?: string): Promise<AssistantResponse>;
+  assistantSendMessage(message: string, confirmed?: boolean, pendingId?: string, language?: string): Promise<AssistantResponse>;
   assistantGetHistory(): Promise<AssistantMessage[]>;
   assistantClearSession(): Promise<void>;
   assistantGetContext(): Promise<ApplicationContext>;
@@ -111,8 +111,8 @@ export const tauri: TauriClient = {
   takeLaunchPath: () => invoke<string | null>("take_launch_path"),
 
   // Assistant
-  assistantSendMessage: (message: string, confirmed?: boolean, pendingId?: string) =>
-    invoke<AssistantResponse>("assistant_send_message", { message, confirmed, pendingId }),
+  assistantSendMessage: (message: string, confirmed?: boolean, pendingId?: string, language?: string) =>
+    invoke<AssistantResponse>("assistant_send_message", { message, confirmed, pendingId, language: language ?? null }),
   assistantGetHistory: () => invoke<AssistantMessage[]>("assistant_get_history"),
   assistantClearSession: () => invoke<void>("assistant_clear_session"),
   assistantGetContext: () => invoke<ApplicationContext>("assistant_get_context"),

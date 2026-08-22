@@ -159,6 +159,9 @@ pub struct AppConfig {
     pub ollama: OllamaPreferences,
     /// Configuración de voz del assistant.
     pub voice: VoicePreferences,
+    /// Modo silencioso del assistant (no genera respuesta de audio).
+    #[serde(default)]
+    pub assistant_silent_mode: bool,
 }
 
 impl Default for AppConfig {
@@ -174,6 +177,7 @@ impl Default for AppConfig {
             storage: StoragePreferences::default(),
             ollama: OllamaPreferences::default(),
             voice: VoicePreferences::default(),
+            assistant_silent_mode: false,
         }
     }
 }
