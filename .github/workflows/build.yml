@@ -1,0 +1,155 @@
+name: Build & Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows (NSIS + Portable)
+        run: |
+          npx tauri build --bundles nsis
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+
+      - name: Package
+        shell: powershell
+        run: |
+          $version = (Get-Content src-tauri/tauri.conf.json | ConvertFrom-Json).version
+          $dist = "src-tauri/target/release/bundle/nsis"
+          $out = "artifacts/windows"
+          New-Item -ItemType Directory -Path $out -Force
+          Get-ChildItem "$dist/*.exe" | ForEach-Object { Copy-Item $_.FullName $out }
+          Get-ChildItem "$dist/*.nsis.zip" | ForEach-Object { Copy-Item $_.FullName $out }
+          # Portable: rebuild without bundle for a single .exe
+          npx tauri build --no-bundle
+          $exe = "src-tauri/target/release/Prometeo.exe"
+          if (Test-Path $exe) {
+            Copy-Item $exe "$out/Prometeo-$version-portable.exe"
+          }
+          Get-ChildItem $out | ForEach-Object { Write-Output "  $($_.Name) ($([math]::Round($_.Length / 1MB, 1)) MB)" }
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-builds
+          path: artifacts/windows/
+          retention-days: 7
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS (DMG)
+        run: npx tauri build --bundles dmg
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+
+      - name: Package
+        run: |
+          version=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          mkdir -p artifacts/macos
+          cp src-tauri/target/release/bundle/dmg/*.dmg artifacts/macos/ 2>/dev/null || true
+          # Universal binary (arm64 + x86_64)
+          cd src-tauri/target/release
+          lipo -create -output universal Prometeo.aarch64-apple-darwin Prometeo.x86_64-apple-darwin 2>/dev/null || cp Prometeo artifacts/macos/Prometeo 2>/dev/null || true
+          cd -
+          ls -lh artifacts/macos/
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-builds
+          path: artifacts/macos/
+          retention-days: 7
+
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgtk-3-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Linux (DEB + AppImage)
+        run: npx tauri build --bundles deb,appimage
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+
+      - name: Package
+        run: |
+          mkdir -p artifacts/linux
+          cp src-tauri/target/release/bundle/deb/*.deb artifacts/linux/ 2>/dev/null || true
+          cp src-tauri/target/release/bundle/appimage/*.AppImage artifacts/linux/ 2>/dev/null || true
+          ls -lh artifacts/linux/
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-builds
+          path: artifacts/linux/
+          retention-days: 7
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            windows-builds/*
+            macos-builds/*
+            linux-builds/*
+          generate_release_notes: true

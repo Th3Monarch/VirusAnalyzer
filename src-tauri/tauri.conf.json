@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Prometeo",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "mainBinaryName": "Prometeo",
   "identifier": "com.prometeo.desktop",
   "build": {
@@ -13,7 +13,7 @@
   "app": {
     "windows": [
       {
-        "title": "Prometeo 2.0",
+        "title": "Prometeo 2.1",
         "width": 1280,
         "height": 800,
         "minWidth": 960,
@@ -30,7 +30,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDJFMTlDRkIxQ0RENjE0QkEKUldTNkZOYk5zYzhaTGh4Z2JGWDJwQ0FSNjVWVGdUazdFeTNETTVkaUtyVlA1Y2haa1B0cDR3aXYK",
       "endpoints": [
-        "https://github.com/Th3Monarch/Prometheus/releases/latest/download/latest.json"
+        "https://github.com/Th3Monarch/prometeo/releases/latest/download/latest.json"
       ]
     }
   },
