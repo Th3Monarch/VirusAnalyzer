@@ -722,7 +722,7 @@ fn generate_conversational_response(input: &str, lang: &str) -> String {
         return if is_en {
             "Hello! I'm your Prometeo security companion. I can help you analyze files, understand scan results, manage quarantine, and more. What would you like to do?".into()
         } else {
-            "Hello! I'm your Prometeo security companion. I can help you analyze files, understand scan results, manage quarantine, and more. What would you like to do?".into()
+            "Soy tu companero de seguridad de Prometeo. Puedo ayudarte a analizar archivos, comprender resultados, gestionar la cuarentena y mas. Que te gustaria hacer?".into()
         };
     }
 
