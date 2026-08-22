@@ -191,7 +191,7 @@ impl SafetyLayer {
         while self
             .destructive_actions
             .front()
-            .map_or(false, |t| *t < cutoff)
+            .is_some_and(|t| *t < cutoff)
         {
             self.destructive_actions.pop_front();
         }

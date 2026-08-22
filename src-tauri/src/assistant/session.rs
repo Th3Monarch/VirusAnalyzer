@@ -39,7 +39,7 @@ impl SessionContext {
         let is_dup = self
             .messages
             .last()
-            .map_or(false, |m| m.role == "user" && m.content == content);
+            .is_some_and(|m| m.role == "user" && m.content == content);
         if is_dup {
             return self.messages.last().expect("checked last above");
         }
@@ -67,7 +67,7 @@ impl SessionContext {
         let is_dup = self
             .messages
             .last()
-            .map_or(false, |m| m.role == "assistant" && m.content == content);
+            .is_some_and(|m| m.role == "assistant" && m.content == content);
         if is_dup {
             return self.messages.last().expect("checked last above");
         }

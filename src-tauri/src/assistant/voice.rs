@@ -80,11 +80,7 @@ impl TextToSpeech for KokoroProvider {
             ));
         }
 
-        let voice = if language.starts_with("es") {
-            "af_heart"
-        } else {
-            "af_heart"
-        };
+        let voice = "af_heart";
 
         let payload = serde_json::json!({
             "model": "kokoro",

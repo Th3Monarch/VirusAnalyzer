@@ -24,22 +24,18 @@ impl PromptBuilder {
             Lang::En
         };
 
-        let mut sections: Vec<String> = Vec::new();
-
-        // 1. Identidad y personalidad
-        sections.push(self.section_identity(personality, lang));
-
-        // 2. Rol y capacidades
-        sections.push(self.section_role(lang));
-
-        // 3. Restricciones de seguridad
-        sections.push(self.section_restrictions(lang));
-
-        // 4. Contexto actual de la aplicación
-        sections.push(self.section_context(context, lang));
-
-        // 5. Acciones disponibles según el estado
-        sections.push(self.section_available_actions(context, lang));
+        let mut sections: Vec<String> = vec![
+            // 1. Identidad y personalidad
+            self.section_identity(personality, lang),
+            // 2. Rol y capacidades
+            self.section_role(lang),
+            // 3. Restricciones de seguridad
+            self.section_restrictions(lang),
+            // 4. Contexto actual de la aplicación
+            self.section_context(context, lang),
+            // 5. Acciones disponibles según el estado
+            self.section_available_actions(context, lang),
+        ];
 
         // 6. Protocolos activos
         if let Some(protocols) = self.section_protocols(context, lang) {

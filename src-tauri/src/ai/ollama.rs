@@ -73,10 +73,10 @@ impl OllamaProvider {
 
         // Historial de conversación previo (como pares user/assistant)
         for ctx_msg in context {
-            let (role, content) = if ctx_msg.starts_with("[user]: ") {
-                ("user", &ctx_msg[8..])
-            } else if ctx_msg.starts_with("[assistant]: ") {
-                ("assistant", &ctx_msg[13..])
+            let (role, content) = if let Some(stripped) = ctx_msg.strip_prefix("[user]: ") {
+                ("user", stripped)
+            } else if let Some(stripped) = ctx_msg.strip_prefix("[assistant]: ") {
+                ("assistant", stripped)
             } else {
                 // Default: tratar como mensaje del usuario
                 ("user", ctx_msg.as_str())
